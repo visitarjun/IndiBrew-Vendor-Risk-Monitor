@@ -70,7 +70,7 @@ Each agent is **stateless**, has a **single responsibility**, and communicates v
 
 ```bash
 # 1. Clone
-git clone https://github.com/YOUR_USERNAME/indibrew-vendor-risk-monitor.git
+git clone https://github.com/visitarjun/indibrew-vendor-risk-monitor.git
 cd indibrew-vendor-risk-monitor
 
 # 2. Install (zero mandatory third-party deps — stdlib only for core pipeline)
