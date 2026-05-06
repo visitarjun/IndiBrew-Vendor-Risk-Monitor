@@ -1,0 +1,23 @@
+# IndiBrew Vendor Risk Monitor — Python dependencies
+# Install: pip install -r requirements.txt
+
+# Core (stdlib only for main pipeline — zero mandatory third-party deps)
+# The project deliberately relies on csv, json, datetime from stdlib
+# so it runs on any Python 3.10+ without pip.
+
+# Optional: enhanced date parsing
+python-dateutil>=2.8.2
+
+# Optional: faster CSV / DataFrame operations for large datasets
+pandas>=2.0.0
+
+# Optional: type checking
+mypy>=1.8.0
+
+# Development / testing
+pytest>=8.0.0
+pytest-cov>=4.0.0
+ruff>=0.3.0
+
+# Optional: load .env files
+python-dotenv>=1.0.0

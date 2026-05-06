@@ -1,0 +1,51 @@
+Vendor_ID,Name,Category,Contract_Value_INR,Payment_Delay_Days,Risk_Score,Last_Audit_Date,Region
+IV0001,Vendor IV0001,Facilities," 18,956,905.00 ",16,9.0,25 April 2025,North
+IV0002,Vendor IV0002,IT Services," 37,098,928.00 ",37,9.2,30 October 2025,West
+IV0003,Vendor IV0003,Facilities," 15,172,546.00 ",18,7.2,16 September 2025,Central
+IV0004,Vendor IV0004,Legal," 48,551,262.00 ",22,7.2,26 December 2025,Central
+IV0005,Vendor IV0005,Consulting," 40,044,950.00 ",30,8.3,19 February 2026,South
+IV0006,Vendor IV0006,Logistics," 47,351,341.00 ",21,9.3,24 June 2025,East
+IV0007,Vendor IV0007,IT Services," 23,088,477.00 ",40,7.6,17 February 2025,West
+IV0008,Vendor IV0008,HR Services," 23,582,477.00 ",43,7.4,16 May 2025,South
+IV0009,Vendor IV0009,Logistics," 8,876,941.00 ",33,9.2,10 February 2025,Central
+IV0010,Vendor IV0010,Finance," 42,008,157.00 ",36,8.0,5 July 2025,Central
+IV0011,Vendor IV0011,Legal," 3,575,222.00 ",18,7.7,27 April 2025,East
+IV0012,Vendor IV0012,Finance," 16,122,331.00 ",43,10.0,21 February 2025,West
+IV0013,Vendor IV0013,Facilities," 24,983,473.00 ",10,7.9,9 July 2025,East
+IV0014,Vendor IV0014,Legal," 47,598,363.00 ",4,7.7,28 November 2025,South
+IV0015,Vendor IV0015,Legal," 36,345,520.00 ",2,8.9,6 May 2025,North
+IV0016,Vendor IV0016,Legal," 43,449,656.00 ",4,8.4,13 October 2025,North
+IV0017,Vendor IV0017,Facilities," 4,253,932.00 ",13,9.1,25 February 2026,South
+IV0018,Vendor IV0018,IT Services," 18,467,786.00 ",6,9.4,19 April 2025,Central
+IV0019,Vendor IV0019,Legal," 14,769,125.00 ",5,6.3,13 September 2025,West
+IV0020,Vendor IV0020,Facilities," 31,293,026.00 ",10,6.3,16 May 2025,North
+IV0021,Vendor IV0021,Consulting," 36,670,153.00 ",8,2.5,18 January 2026,Central
+IV0022,Vendor IV0022,Consulting," 27,303,314.00 ",9,3.6,23 April 2025,North
+IV0023,Vendor IV0023,Finance," 3,661,926.00 ",1,4.1,26 February 2025,North
+IV0024,Vendor IV0024,Logistics," 46,166,321.00 ",12,4.8,2 November 2025,South
+IV0025,Vendor IV0025,HR Services," 31,910,296.00 ",9,3.3,9 May 2025,Central
+IV0026,Vendor IV0026,Legal," 46,153,046.00 ",0,6.2,28 February 2025,Central
+IV0027,Vendor IV0027,Consulting," 43,514,218.00 ",12,5.5,27 February 2025,East
+IV0028,Vendor IV0028,Legal," 717,789.00 ",7,3.6,4 January 2026,East
+IV0029,Vendor IV0029,HR Services," 12,489,124.00 ",12,6.8,24 February 2025,East
+IV0030,Vendor IV0030,Facilities," 41,367,299.00 ",8,6.1,20 March 2025,East
+IV0031,Vendor IV0031,IT Services," 36,091,432.00 ",8,5.6,3 November 2025,East
+IV0032,Vendor IV0032,Finance," 24,859,226.00 ",1,3.9,18 February 2026,East
+IV0033,Vendor IV0033,IT Services," 38,574,679.00 ",3,2.4,13 February 2025,West
+IV0034,Vendor IV0034,Finance," 36,249,305.00 ",12,5.9,6 March 2025,North
+IV0035,Vendor IV0035,Consulting," 11,581,482.00 ",8,5.0,28 September 2025,Central
+IV0036,Vendor IV0036,Finance," 36,691,547.00 ",3,3.5,9 January 2026,North
+IV0037,Vendor IV0037,Legal," 45,576,148.00 ",6,5.3,11 July 2025,West
+IV0038,Vendor IV0038,Facilities," 8,620,454.00 ",7,6.4,26 April 2025,South
+IV0039,Vendor IV0039,Facilities," 37,673,044.00 ",9,3.0,29 October 2025,North
+IV0040,Vendor IV0040,IT Services," 42,852,602.00 ",11,1.0,28 April 2025,South
+IV0041,Vendor IV0041,IT Services," 22,674,680.00 ",13,6.4,21 September 2025,North
+IV0042,Vendor IV0042,HR Services," 14,877,188.00 ",7,2.7,9 March 2025,Central
+IV0043,Vendor IV0043,Finance," 32,240,676.00 ",3,4.5,28 July 2025,North
+IV0044,Vendor IV0044,Consulting," 29,427,355.00 ",10,1.6,5 August 2025,West
+IV0045,Vendor IV0045,Legal," 4,135,366.00 ",11,3.8,1 December 2025,South
+IV0046,Vendor IV0046,Finance," 23,270,212.00 ",11,1.4,25 February 2025,North
+IV0047,Vendor IV0047,Facilities," 30,605,945.00 ",8,2.1,5 August 2025,North
+IV0048,Vendor IV0048,Logistics," 5,558,994.00 ",3,2.7,18 February 2026,Central
+IV0049,Vendor IV0049,Finance," 36,778,242.00 ",10,1.6,8 January 2025,South
+IV0050,Vendor IV0050,Facilities," 16,363,159.00 ",13,6.6,28 July 2025,West
