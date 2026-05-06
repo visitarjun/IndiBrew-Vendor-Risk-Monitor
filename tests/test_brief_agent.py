@@ -6,11 +6,8 @@ INR formatting, callout blocks, and save functionality.
 """
 from __future__ import annotations
 
-import tempfile
 from datetime import date
-from pathlib import Path
 
-import pytest
 
 from agents.data_agent import DataBundle, Vendor, Incident, Employee
 from agents.risk_agent  import RiskAgent
@@ -23,23 +20,21 @@ from agents.brief_agent import BriefAgent, _inr_l, _inr_cr
 # ---------------------------------------------------------------------------
 
 def _make_bundle():
+    # Vendor(vendor_id, name, category, contract_value_inr, payment_delay_days, risk_score, last_audit_date, region)
     vendors = [
-        Vendor("IV0001", "Vendor A", "IT", 8.5, 25, 5_000_000, True, date(2025,6,1)),
-        Vendor("IV0002", "Vendor B", "Consulting", 3.0, 5, 1_000_000, True, date(2025,8,1)),
+        Vendor("IV0001", "Vendor A", "IT Services",  5_000_000, 25, 8.5, "2025-06-01", "South"),
+        Vendor("IV0002", "Vendor B", "Consulting",   1_000_000,  5, 3.0, "2025-08-01", "West"),
     ]
+    # Incident(incident_id, date, department, type, severity, resolved, owner_employee_id, linked_vendor_id, financial_impact_inr)
     incidents = [
-        Incident("INC001", date(2026,4,20), "Procurement", "Approval Delay",
-                 "HIGH", False, 250_000, "IV0001", "EMP001"),
-        Incident("INC002", date(2026,4,15), "Compliance",  "Audit Finding",
-                 "MEDIUM", True, 120_000, "IV0002", "EMP002"),
-        Incident("INC003", date(2026,5,1),  "Procurement", "PO Expiry",
-                 "HIGH", False, 180_000, "IV0001", "EMP001"),
+        Incident("INC001", date(2026,4,20), "Procurement", "Approval Delay", "HIGH",   False, "EMP001", "IV0001", 250_000.0),
+        Incident("INC002", date(2026,4,15), "Compliance",  "Audit Finding",  "MEDIUM", True,  "EMP002", "IV0002", 120_000.0),
+        Incident("INC003", date(2026,5,1),  "Procurement", "PO Expiry",      "HIGH",   False, "EMP001", "IV0001", 180_000.0),
     ]
+    # Employee(employee_id, name, department, role, join_date, performance_score, training_completed, compliance_incidents, salary_band)
     employees = [
-        Employee("EMP001", "Manager", "Procurement Manager",
-                 "Procurement", False, 4, date(2025,1,1)),
-        Employee("EMP002", "Analyst", "Compliance Officer",
-                 "Compliance",  True,  1, date(2025,6,1)),
+        Employee("EMP001", "Manager", "Procurement", "Procurement Manager", "2025-01-01", 3.5, False, 4, "L4"),
+        Employee("EMP002", "Analyst", "Compliance",  "Compliance Officer",  "2025-06-01", 4.0, True,  1, "L3"),
     ]
     return DataBundle(vendors=vendors, incidents=incidents,
                       employees=employees, summary={}, errors=[])
@@ -62,7 +57,8 @@ class TestInrFormatting:
 
     def test_inr_cr_large(self):
         result = _inr_cr(1_560_000_000)
-        assert "1,560" in result or "1560" in result
+        # 1,560,000,000 = 156 Cr
+        assert "156" in result
 
 
 # ---------------------------------------------------------------------------
