@@ -2,7 +2,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?logo=github-actions&logoColor=white)](/.github/workflows/ci.yml)
+[![CI](https://github.com/visitarjun/IndiBrew-Vendor-Risk-Monitor/actions/workflows/ci.yml/badge.svg)](https://github.com/visitarjun/IndiBrew-Vendor-Risk-Monitor/actions/workflows/ci.yml)
 [![Tests](https://img.shields.io/badge/Tests-pytest-0A9EDC?logo=pytest&logoColor=white)](tests/)
 [![Lint](https://img.shields.io/badge/Lint-ruff-FCC21B?logo=python&logoColor=black)](https://github.com/astral-sh/ruff)
 [![Type Check](https://img.shields.io/badge/Types-mypy-2A6DB2)](https://mypy-lang.org)
@@ -274,3 +274,4 @@ MIT — see [LICENSE](LICENSE)
 
 *Built by Arjun Murthy · IndiBrew GCC AI Portfolio · May 2026*
 *Powered by Claude (Anthropic) · Cowork Mode · 9 Structured Thinking Modes*
+   
