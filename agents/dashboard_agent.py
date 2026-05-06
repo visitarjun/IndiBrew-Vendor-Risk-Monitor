@@ -19,7 +19,6 @@ Thinking Modes Applied
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -201,7 +200,8 @@ const typeMoMColors      = {json.dumps(type_mom_colors)};
         # Keys may be date objects or ISO strings — normalise to label strings
         from datetime import date as _date, datetime as _dt
         def _label(k):
-            if isinstance(k, _date): return k.strftime("%d %b")
+            if isinstance(k, _date):
+                return k.strftime("%d %b")
             return _dt.strptime(k, "%Y-%m-%d").strftime("%d %b")
         return ([_label(d) for d in days], [daily[d] for d in days])
 

@@ -21,11 +21,10 @@ Explainable AI (Leadership with AI framework):
 from __future__ import annotations
 
 import logging
-from datetime import date, datetime
+from datetime import date
 from pathlib import Path
-from typing import Any
 
-from .risk_agent  import RiskReport, VendorRisk, IncidentRisk, EmployeeRisk
+from .risk_agent  import RiskReport
 from .trend_agent import TrendReport, MoMDelta
 
 logger = logging.getLogger(__name__)
@@ -51,9 +50,12 @@ def _mom(d: MoMDelta, unit: str = "") -> str:
     return f"{d.current:,.0f}{unit} ({d.delta_pct:+.1f}% MoM {arrow})"
 
 def _status(open_pct: float) -> str:
-    if open_pct >= 25: return "🔴 CRITICAL"
-    if open_pct >= 20: return "🟠 HIGH"
-    if open_pct >= 15: return "🟡 MEDIUM"
+    if open_pct >= 25:
+        return "🔴 CRITICAL"
+    if open_pct >= 20:
+        return "🟠 HIGH"
+    if open_pct >= 15:
+        return "🟡 MEDIUM"
     return "🟢 OK"
 
 
@@ -414,8 +416,10 @@ Management must answer: (1) What is the formal SLA by severity tier? (2) Who rec
         )[:10]:
             cd = trend.current.by_dept.get(dept, {})
             pd = trend.prior.by_dept.get(dept, {})
-            c_total = cd.get("total", 0); c_open = cd.get("open", 0)
-            p_total = pd.get("total", 0); p_open = pd.get("open", 0)
+            c_total = cd.get("total", 0)
+            c_open = cd.get("open", 0)
+            p_total = pd.get("total", 0)
+            p_open = pd.get("open", 0)
             v_delta = trend.dept_deltas[dept]["volume"]
             o_delta = trend.dept_deltas[dept]["open"]
             open_pct = c_open / c_total * 100 if c_total else 0
@@ -460,7 +464,8 @@ Management must answer: (1) What is the formal SLA by severity tier? (2) Who rec
 {table}
 
 > [!NOTE]
-> **⚡ God Mode Root Node:** Approval Delay → PO Expiry → Contract Non-Compliance → Vendor Risk are one broken approval chain in four incident types. Fix approval delegation once; four metrics improve simultaneously."""
+> **⚡ God Mode Root Node:** Approval Delay → PO Expiry → Contract Non-Compliance → Vendor Risk are one broken approval chain in four incident types. Fix approval delegation once
+four metrics improve simultaneously."""
 
     def _trend_top_incidents(self, trend: TrendReport) -> str:
         rows = []

@@ -98,7 +98,7 @@ def run(args: argparse.Namespace) -> int:
     --------
     DataAgent → RiskAgent → TrendAgent → BriefAgent → DashboardAgent
     """
-    settings = Settings.from_env()
+    Settings.from_env()  # validate env on startup
     t_total  = time.perf_counter()
 
     # ── Reference date ─────────────────────────────────────────────────────
@@ -111,7 +111,7 @@ def run(args: argparse.Namespace) -> int:
     else:
         as_of = date.today()
 
-    _log(f"IndiBrew GCC Vendor Risk Monitor", bold=True)
+    _log("IndiBrew GCC Vendor Risk Monitor", bold=True)
     _log(f"Reference date : {as_of}")
     _log(f"Data directory : {args.data_dir}")
     _log(f"Output dir     : {args.output_dir}")
@@ -259,4 +259,3 @@ def _err(msg: str) -> None:
 
 if __name__ == "__main__":
     sys.exit(run(_parse_args()))
-                                                         

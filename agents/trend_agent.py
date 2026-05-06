@@ -183,15 +183,23 @@ class TrendAgent:
         direction = "UP" if delta_abs > 0 else ("DOWN" if delta_abs < 0 else "FLAT")
 
         if higher_is_bad:
-            if delta_pct > 10:  signal = "DETERIORATING"
-            elif delta_pct > 3: signal = "WATCH"
-            elif delta_pct < -5: signal = "IMPROVING"
-            else:                signal = "STABLE"
+            if delta_pct > 10:
+                signal = "DETERIORATING"
+            elif delta_pct > 3:
+                signal = "WATCH"
+            elif delta_pct < -5:
+                signal = "IMPROVING"
+            else:
+                signal = "STABLE"
         else:
-            if delta_pct < -10: signal = "DETERIORATING"
-            elif delta_pct < -3: signal = "WATCH"
-            elif delta_pct > 5:  signal = "IMPROVING"
-            else:                 signal = "STABLE"
+            if delta_pct < -10:
+                signal = "DETERIORATING"
+            elif delta_pct < -3:
+                signal = "WATCH"
+            elif delta_pct > 5:
+                signal = "IMPROVING"
+            else:
+                signal = "STABLE"
 
         return MoMDelta(
             current=current, prior=prior,
@@ -288,7 +296,7 @@ class TrendAgent:
             pass
 
         # 6. ₹5L cap detection
-        cap_count = sum(
+        _cap_count = sum(
             1 for d in [cur.by_dept.get(dept, {}) for dept in cur.by_dept]
         )  # simplified — full check in DataAgent
 
