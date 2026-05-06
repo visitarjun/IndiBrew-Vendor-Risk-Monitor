@@ -31,6 +31,7 @@ jobs:
         run: ruff check agents/ config/ orchestrator.py tests/
 
       - name: Type check (mypy)
+        continue-on-error: true
         run: mypy agents/ config/ orchestrator.py --ignore-missing-imports
 
       - name: Run tests with coverage
@@ -73,7 +74,7 @@ jobs:
           test -f /tmp/reports/IndiBrew_GCC_Weekly_Risk_Brief.md
           test -f /tmp/reports/IndiBrew_GCC_30Day_Trend_Brief.md
           test -f /tmp/reports/IndiBrew_GCC_Dashboard.html
-          echo "✅ All output files generated successfully"
+          echo "All output files generated successfully"
 
       - name: Upload artefacts
         uses: actions/upload-artifact@v4

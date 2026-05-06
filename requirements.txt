@@ -11,8 +11,8 @@ python-dateutil>=2.8.2
 # Optional: faster CSV / DataFrame operations for large datasets
 pandas>=2.0.0
 
-# Optional: type checking
-mypy>=1.8.0
+# Optional: type checking (pinned below 1.12 to avoid upstream internal crash bug)
+mypy>=1.8.0,<1.12.0
 
 # Development / testing
 pytest>=8.0.0
