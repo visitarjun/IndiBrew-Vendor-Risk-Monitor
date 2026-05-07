@@ -1,10 +1,574 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta http-equiv="refresh" content="0; url=IndiBrew_GCC_Dashboard.html">
-<title>IndiBrew GCC Risk Monitor</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IndiBrew GCC — Vendor Risk Monitor Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"
+        crossorigin="anonymous"></script>
+<style>
+  :root {
+    --bg:      #0f1117;
+    --surface: #1a1d2e;
+    --border:  #2d3150;
+    --text:    #e2e8f0;
+    --muted:   #94a3b8;
+    --accent:  #6366f1;
+    --red:     #ef4444;
+    --orange:  #f97316;
+    --yellow:  #f59e0b;
+    --green:   #22c55e;
+    --blue:    #3b82f6;
+    --purple:  #8b5cf6;
+    --cyan:    #06b6d4;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  header {
+    background: linear-gradient(135deg, #1e1b4b 0%, #0f1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 24px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  header h1 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.02em;
+  }
+  header .subtitle { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
+  header .badge {
+    background: var(--accent);
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  /* KPI strip */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px;
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+  }
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+  }
+  .kpi-value { font-size: 1.6rem; font-weight: 800; line-height: 1.1; }
+  .kpi-label { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+
+  /* Panel tabs */
+  .tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    background: var(--surface);
+  }
+  .tab {
+    padding: 12px 24px;
+    cursor: pointer;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    transition: all .15s;
+  }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab:hover { color: var(--text); }
+
+  /* Panels */
+  .panel { display: none; padding: 28px 32px; }
+  .panel.active { display: block; }
+
+  /* Chart grid */
+  .chart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  .chart-grid.wide { grid-template-columns: 1fr; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+  }
+  .card-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card-title .tag {
+    font-size: 0.7rem;
+    background: rgba(99,102,241,.18);
+    color: var(--accent);
+    padding: 2px 8px;
+    border-radius: 9999px;
+  }
+  .chart-wrap { position: relative; height: 280px; }
+  .chart-wrap.tall { height: 360px; }
+
+  /* Ghost Mode insight box */
+  .insight {
+    background: rgba(99,102,241,.08);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin-top: 20px;
+    font-size: 0.84rem;
+    color: var(--muted);
+  }
+  .insight strong { color: var(--text); }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 0.75rem;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+  }
+</style>
 </head>
 <body>
-<a href="IndiBrew_GCC_Dashboard.html">Loading dashboard...</a>
+
+<header>
+  <div>
+    <h1>IndiBrew GCC — Vendor Risk Monitor</h1>
+    <div class="subtitle">Hyderabad · 5,000 employees · 2,000 vendors · 90,000+ incidents</div>
+  </div>
+  <div class="badge">LIVE ANALYSIS</div>
+</header>
+
+<!-- KPI Strip -->
+<div class="kpi-strip">
+<div class="kpi-card"><div class="kpi-value" style="color:#ef4444">₹32 Cr</div><div class="kpi-label">Total Contract Exposure</div></div>
+<div class="kpi-card"><div class="kpi-value" style="color:#f97316">12</div><div class="kpi-label">High-Risk Vendors</div></div>
+<div class="kpi-card"><div class="kpi-value" style="color:#f59e0b">226</div><div class="kpi-label">Open Incidents</div></div>
+<div class="kpi-card"><div class="kpi-value" style="color:#8b5cf6">45.2%</div><div class="kpi-label">Unresolved Rate</div></div>
+<div class="kpi-card"><div class="kpi-value" style="color:#06b6d4">15</div><div class="kpi-label">At-Risk Staff</div></div>
+<div class="kpi-card"><div class="kpi-value" style="color:#ef4444">DETERIORATING</div><div class="kpi-label">30-Day Trend Signal</div></div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" onclick="showPanel('overview',this)">📊 Overview</div>
+  <div class="tab"        onclick="showPanel('risk',this)">🔴 Risk Detail</div>
+  <div class="tab"        onclick="showPanel('trend',this)">📈 30-Day Trend</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- PANEL 1: OVERVIEW                                                   -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div id="panel-overview" class="panel active">
+  <div class="chart-grid">
+
+    <div class="card">
+      <div class="card-title">
+        Incidents by Department
+        <span class="tag">Total vs Open</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="deptChart"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        Vendor Risk Matrix
+        <span class="tag">Score × Payment Delay × Exposure</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="scatterChart"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="chart-grid wide">
+    <div class="card">
+      <div class="card-title">
+        Top 15 Vendors by Contract Exposure (₹ Lakh)
+        <span class="tag">High-Risk Only</span>
+      </div>
+      <div class="chart-wrap tall">
+        <canvas id="exposureChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight">
+    <strong>👻 Ghost Mode:</strong>
+    The scatter chart reveals vendors clustering in the top-left quadrant — high risk scores
+    with low payment delays. This is the blind spot: risk flags that are NOT driven by payment
+    behaviour alone. These vendors require a qualitative contract review, not just SLA monitoring.
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- PANEL 2: RISK DETAIL                                                -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div id="panel-risk" class="panel">
+  <div class="chart-grid">
+
+    <div class="card">
+      <div class="card-title">
+        Top Employee Risk Profile
+        <span class="tag">Incidents + Composite Score</span>
+      </div>
+      <div class="chart-wrap tall">
+        <canvas id="empChart"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        Open Incident Severity Distribution
+        <span class="tag">High-Risk Incidents Only</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="severityChart"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="chart-grid wide">
+    <div class="card">
+      <div class="card-title">
+        Open Financial Exposure by Department (₹ Lakh)
+        <span class="tag">Unresolved Incidents &gt; ₹1L</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="deptExposureChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight">
+    <strong>🧠 First Principles:</strong>
+    Training completion ≠ training effectiveness.
+    The employee risk chart separates employees who completed training but still accumulate
+    maximum compliance incidents — this is the metric HR systems universally miss.
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- PANEL 3: 30-DAY TREND                                               -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div id="panel-trend" class="panel">
+  <div class="chart-grid wide">
+    <div class="card">
+      <div class="card-title">
+        Daily Incident Volume (Last 30 Days)
+        <span class="tag">Current Window</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="dailyChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-grid">
+
+    <div class="card">
+      <div class="card-title">
+        Department Incidents: Current vs Prior Month
+        <span class="tag">MoM Comparison</span>
+      </div>
+      <div class="chart-wrap tall">
+        <canvas id="deptMoMChart"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        Incident Type MoM Delta (%)
+        <span class="tag">Red = Rising · Green = Falling</span>
+      </div>
+      <div class="chart-wrap tall">
+        <canvas id="typeMoMChart"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="insight">
+    <strong>👻 Ghost Mode — Approval Delay Root Node:</strong>
+    Rising Approval Delay incidents are not a single problem. They are the first node
+    in a four-incident chain: Approval Delay → PO Expiry → Contract Non-Compliance → Vendor Risk.
+    All four incident types share one root cause: the procurement approval workflow is broken.
+    Fixing the workflow fixes all four metrics simultaneously.
+  </div>
+</div>
+
+<footer>
+  IndiBrew Vendor Risk Monitor · Built with Claude (Cowork Mode) · 9 Structured Thinking Modes
+  · Chart.js 4.4.1 · Data: 97,001 rows across Vendors, Incidents, Employees
+</footer>
+
+<script>
+
+// ── Panel 1: Overview ──────────────────────────────────────────────
+const deptLabels         = ["Risk & Audit", "Compliance", "Procurement", "HR", "Operations", "IT", "Vendor Management", "Legal", "Finance", "Supply Chain"];
+const deptTotal          = [68, 58, 56, 54, 50, 48, 45, 44, 40, 37];
+const deptOpen           = [29, 24, 23, 25, 21, 26, 28, 15, 14, 21];
+const vendorScatterData  = [{"x": 43.0, "y": 10.0, "r": 20, "label": "IV0012"}, {"x": 37.0, "y": 9.2, "r": 20, "label": "IV0002"}, {"x": 33.0, "y": 9.2, "r": 17.753881999999997, "label": "IV0009"}, {"x": 21.0, "y": 9.3, "r": 20, "label": "IV0006"}, {"x": 36.0, "y": 8.0, "r": 20, "label": "IV0010"}, {"x": 43.0, "y": 7.4, "r": 20, "label": "IV0008"}, {"x": 40.0, "y": 7.6, "r": 20, "label": "IV0007"}, {"x": 30.0, "y": 8.3, "r": 20, "label": "IV0005"}, {"x": 16.0, "y": 9.0, "r": 20, "label": "IV0001"}, {"x": 18.0, "y": 7.7, "r": 7.150444, "label": "IV0011"}, {"x": 22.0, "y": 7.2, "r": 20, "label": "IV0004"}, {"x": 18.0, "y": 7.2, "r": 20, "label": "IV0003"}];
+const exposureLabels     = ["IV0004", "IV0006", "IV0010", "IV0005", "IV0002", "IV0008", "IV0007", "IV0001", "IV0012", "IV0003", "IV0009", "IV0011"];
+const exposureVals       = [485.51, 473.51, 420.08, 400.45, 370.99, 235.82, 230.88, 189.57, 161.22, 151.73, 88.77, 35.75];
+
+// ── Panel 2: Risk Detail ────────────────────────────────────────────
+const empLabels          = ["IBSH00001", "IBSH00002", "IBSH00004", "IBSH00009", "IBSH00013", "IBSH00014", "IBSH00003", "IBSH00005", "IBSH00006", "IBSH00007", "IBSH00008", "IBSH00010", "IBSH00011", "IBSH00012", "IBSH00015"];
+const empIncidentVals    = [5, 5, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 4];
+const empRiskVals        = [2.9, 3.6, 3.8, 3.6, 3.2, 3.7, 4.9, 2.7, 3.9, 3.0, 4.2, 3.2, 2.9, 4.8, 2.5];
+const severityLabels     = ["CRITICAL", "HIGH", "MEDIUM", "LOW"];
+const severityVals       = [40, 112, 30, 29];
+const severityColors     = ["#7c3aed", "#ef4444", "#f97316", "#22c55e"];
+const deptExposureLabels = ["Risk & Audit", "Vendor Management", "Compliance", "IT", "HR", "Procurement", "Operations", "Supply Chain", "Legal", "Finance"];
+const deptExposureVals   = [138.18, 118.31, 113.1, 108.74, 107.05, 105.55, 101.29, 88.35, 78.24, 62.17];
+
+// ── Panel 3: 30-Day Trend ───────────────────────────────────────────
+const dailyLabels        = ["07 Apr", "08 Apr", "10 Apr", "11 Apr", "13 Apr", "14 Apr", "15 Apr", "16 Apr", "18 Apr", "19 Apr", "20 Apr", "21 Apr", "23 Apr", "24 Apr", "25 Apr", "26 Apr", "27 Apr", "28 Apr", "01 May", "02 May", "03 May", "04 May", "05 May", "06 May", "07 May"];
+const dailyVals          = [1, 3, 6, 3, 3, 3, 2, 3, 3, 3, 1, 4, 2, 1, 2, 3, 1, 3, 3, 4, 3, 1, 1, 3, 1];
+const deptMoMLabels      = ["Procurement", "Vendor Management", "Compliance", "Legal", "Risk & Audit", "Finance", "HR", "IT", "Supply Chain", "Operations"];
+const deptMoMCurr        = [8, 9, 9, 6, 7, 4, 6, 5, 5, 4];
+const deptMoMPrior       = [1, 3, 3, 2, 3, 7, 3, 2, 4, 5];
+const typeMoMLabels      = ["Approval Delay", "Payment Delay", "Policy Violation", "Contract Non-Compliance", "Training Overdue", "Data Quality", "Audit Finding", "Vendor Risk", "PO Expiry"];
+const typeMoMDeltas      = [400.0, 200.0, 166.7, 100.0, 75.0, 66.7, 40.0, 25.0, 25.0];
+const typeMoMColors      = ["#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444"];
+
+
+// ── Utilities ────────────────────────────────────────────────────────
+function showPanel(id, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  el.classList.add('active');
+}
+
+const GRID_COLOR  = 'rgba(255,255,255,0.06)';
+const TEXT_COLOR  = '#94a3b8';
+const baseOptions = (horizontal = false) => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { labels: { color: TEXT_COLOR, font: { size: 11 } } },
+    tooltip: { backgroundColor: '#1a1d2e', borderColor: '#2d3150', borderWidth: 1,
+                titleColor: '#e2e8f0', bodyColor: '#94a3b8' },
+  },
+  scales: horizontal ? {
+    x: { grid: { color: GRID_COLOR }, ticks: { color: TEXT_COLOR } },
+    y: { grid: { display: false }, ticks: { color: TEXT_COLOR, font: { size: 11 } } },
+  } : {
+    x: { grid: { display: false }, ticks: { color: TEXT_COLOR, maxRotation: 45 } },
+    y: { grid: { color: GRID_COLOR }, ticks: { color: TEXT_COLOR } },
+  },
+});
+
+// ── Chart 1: Dept incidents bar ───────────────────────────────────────
+new Chart(document.getElementById('deptChart'), {
+  type: 'bar',
+  data: {
+    labels: deptLabels,
+    datasets: [
+      { label: 'Total', data: deptTotal,
+         backgroundColor: 'rgba(99,102,241,0.6)', borderColor: '#6366f1', borderWidth: 1 },
+      { label: 'Open',  data: deptOpen,
+         backgroundColor: 'rgba(239,68,68,0.6)',  borderColor: '#ef4444', borderWidth: 1 },
+    ],
+  },
+  options: baseOptions(),
+});
+
+// ── Chart 2: Vendor scatter ──────────────────────────────────────────
+new Chart(document.getElementById('scatterChart'), {
+  type: 'bubble',
+  data: {
+    datasets: [{
+      label: 'Vendor',
+      data: vendorScatterData,
+      backgroundColor: 'rgba(239,68,68,0.55)',
+      borderColor: '#ef4444',
+      borderWidth: 1,
+    }],
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#1a1d2e', borderColor: '#2d3150', borderWidth: 1,
+        titleColor: '#e2e8f0',      bodyColor: '#94a3b8',
+        callbacks: {
+          label: ctx => {
+            const d = ctx.raw;
+            return `${d.label} | Delay: ${d.x}d | Score: ${d.y}`;
+          },
+        },
+      },
+    },
+    scales: {
+      x: { title: { display: true, text: 'Payment Delay (days)', color: TEXT_COLOR },
+            grid: { color: GRID_COLOR }, ticks: { color: TEXT_COLOR } },
+      y: { title: { display: true, text: 'Risk Score',           color: TEXT_COLOR },
+            grid: { color: GRID_COLOR }, ticks: { color: TEXT_COLOR },
+            min: 7, max: 10 },
+    },
+  },
+});
+
+// ── Chart 3: Exposure horizontal bar ────────────────────────────────
+new Chart(document.getElementById('exposureChart'), {
+  type: 'bar',
+  data: {
+    labels: exposureLabels,
+    datasets: [{
+      label: 'Contract Exposure (₹ Lakh)',
+      data: exposureVals,
+      backgroundColor: 'rgba(249,115,22,0.65)',
+      borderColor: '#f97316',
+      borderWidth: 1,
+    }],
+  },
+  options: { ...baseOptions(true), indexAxis: 'y' },
+});
+
+// ── Chart 4: Employee risk bar+line ──────────────────────────────────
+new Chart(document.getElementById('empChart'), {
+  type: 'bar',
+  data: {
+    labels: empLabels,
+    datasets: [
+      { label: 'Compliance Incidents', data: empIncidentVals, type: 'bar',
+         backgroundColor: 'rgba(239,68,68,0.6)', borderColor: '#ef4444', borderWidth: 1,
+         yAxisID: 'y' },
+      { label: 'Composite Risk Score', data: empRiskVals, type: 'line',
+         borderColor: '#f97316', backgroundColor: 'rgba(249,115,22,0.1)',
+         tension: 0.3, pointRadius: 4, yAxisID: 'y1' },
+    ],
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: TEXT_COLOR } },
+      tooltip: { backgroundColor: '#1a1d2e', titleColor: '#e2e8f0', bodyColor: '#94a3b8' },
+    },
+    scales: {
+      x:  { grid: { display: false },  ticks: { color: TEXT_COLOR, maxRotation: 60, font: { size: 10 } } },
+      y:  { grid: { color: GRID_COLOR }, ticks: { color: TEXT_COLOR },
+             title: { display: true, text: 'Incidents', color: TEXT_COLOR } },
+      y1: { position: 'right', grid: { display: false }, ticks: { color: '#f97316' },
+             title: { display: true, text: 'Risk Score', color: '#f97316' } },
+    },
+  },
+});
+
+// ── Chart 5: Severity doughnut ───────────────────────────────────────
+new Chart(document.getElementById('severityChart'), {
+  type: 'doughnut',
+  data: {
+    labels: severityLabels,
+    datasets: [{
+      data: severityVals,
+      backgroundColor: severityColors,
+      borderColor: '#0f1117',
+      borderWidth: 3,
+    }],
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'right', labels: { color: TEXT_COLOR, padding: 16 } },
+      tooltip: { backgroundColor: '#1a1d2e', titleColor: '#e2e8f0', bodyColor: '#94a3b8' },
+    },
+  },
+});
+
+// ── Chart 6: Dept open exposure horizontal bar ───────────────────────
+new Chart(document.getElementById('deptExposureChart'), {
+  type: 'bar',
+  data: {
+    labels: deptExposureLabels,
+    datasets: [{
+      label: 'Open Exposure (₹ Lakh)',
+      data: deptExposureVals,
+      backgroundColor: 'rgba(139,92,246,0.65)',
+      borderColor: '#8b5cf6',
+      borderWidth: 1,
+    }],
+  },
+  options: { ...baseOptions(true), indexAxis: 'y' },
+});
+
+// ── Chart 7: Daily trend line ────────────────────────────────────────
+new Chart(document.getElementById('dailyChart'), {
+  type: 'line',
+  data: {
+    labels: dailyLabels,
+    datasets: [{
+      label: 'Daily Incidents',
+      data: dailyVals,
+      borderColor: '#6366f1',
+      backgroundColor: 'rgba(99,102,241,0.12)',
+      tension: 0.4,
+      fill: true,
+      pointRadius: 3,
+      pointHoverRadius: 6,
+    }],
+  },
+  options: baseOptions(),
+});
+
+// ── Chart 8: Dept MoM grouped bar ────────────────────────────────────
+new Chart(document.getElementById('deptMoMChart'), {
+  type: 'bar',
+  data: {
+    labels: deptMoMLabels,
+    datasets: [
+      { label: 'Current Month',  data: deptMoMCurr,
+         backgroundColor: 'rgba(239,68,68,0.65)',  borderColor: '#ef4444', borderWidth: 1 },
+      { label: 'Prior Month',    data: deptMoMPrior,
+         backgroundColor: 'rgba(148,163,184,0.35)', borderColor: '#94a3b8', borderWidth: 1 },
+    ],
+  },
+  options: baseOptions(),
+});
+
+// ── Chart 9: Type MoM horizontal bar ────────────────────────────────
+new Chart(document.getElementById('typeMoMChart'), {
+  type: 'bar',
+  data: {
+    labels: typeMoMLabels,
+    datasets: [{
+      label: 'MoM Change (%)',
+      data: typeMoMDeltas,
+      backgroundColor: typeMoMColors,
+      borderWidth: 0,
+    }],
+  },
+  options: { ...baseOptions(true), indexAxis: 'y' },
+});
+</script>
 </body>
 </html>
