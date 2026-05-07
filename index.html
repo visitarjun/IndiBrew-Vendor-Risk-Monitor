@@ -177,7 +177,8 @@
 
 <!-- ══════════════════════ TABS ══════════════════════ -->
 <div class="tabs">
-  <div class="tab active"  onclick="showPanel('overview',this)">📊 Overview</div>
+  <div class="tab active"  onclick="showPanel('blueprint',this)">📋 Blueprint</div>
+  <div class="tab"         onclick="showPanel('overview',this)">📊 Overview</div>
   <div class="tab"         onclick="showPanel('risk',this)">🔴 Risk Detail</div>
   <div class="tab"         onclick="showPanel('trend',this)">📈 30-Day Trend</div>
   <div class="tab"         onclick="showPanel('vendors',this)">🏢 Vendor Table</div>
@@ -185,9 +186,185 @@
 </div>
 
 <!-- ════════════════════════════════════════════════════
+     PANEL 0 — BLUEPRINT
+════════════════════════════════════════════════════ -->
+<div id="panel-blueprint" class="panel active">
+<div style="max-width:900px;margin:0 auto;padding:8px 0 48px;">
+
+  <!-- Hero -->
+  <div style="background:linear-gradient(135deg,#1e1b4b 0%,#0f172a 100%);border:1px solid #2d3150;border-radius:14px;padding:32px 36px;margin-bottom:24px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;">
+      <div>
+        <div style="font-size:0.72rem;color:#6366f1;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">Enterprise AI Governance System</div>
+        <h2 style="font-size:1.6rem;font-weight:800;color:#fff;line-height:1.2;margin-bottom:10px;">IndiBrew GCC<br>Vendor Risk Monitor</h2>
+        <p style="color:#94a3b8;font-size:0.88rem;max-width:480px;line-height:1.7;">
+          A 5-agent AI pipeline that reads <strong style="color:#e2e8f0;">97,001 raw GCC records</strong> and delivers a boardroom-ready risk brief, trend analysis, and interactive dashboard — in a single command, with zero BI tooling.
+        </p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;min-width:180px;">
+        <div style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:12px 16px;text-align:center;">
+          <div style="font-size:1.4rem;font-weight:800;color:#ef4444;">₹32 Cr</div>
+          <div style="font-size:0.72rem;color:#94a3b8;margin-top:2px;">Exposure Surfaced</div>
+        </div>
+        <div style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);border-radius:10px;padding:12px 16px;text-align:center;">
+          <div style="font-size:1.4rem;font-weight:800;color:#22c55e;">0.04s</div>
+          <div style="font-size:0.72rem;color:#94a3b8;margin-top:2px;">Full Pipeline Runtime</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Problem / Ghost Mode -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 22px;">
+      <div style="font-size:0.7rem;color:#ef4444;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;">🔴 The Problem — First Principles</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="background:rgba(239,68,68,.07);border-radius:8px;padding:10px 13px;font-size:0.82rem;">
+          <div style="color:#e2e8f0;font-weight:600;margin-bottom:3px;">2,000 vendors. No unified risk score.</div>
+          <div style="color:#94a3b8;">₹32 Cr exposure invisible until vendor fails.</div>
+        </div>
+        <div style="background:rgba(239,68,68,.07);border-radius:8px;padding:10px 13px;font-size:0.82rem;">
+          <div style="color:#e2e8f0;font-weight:600;margin-bottom:3px;">90,000+ incidents. Unread CSVs.</div>
+          <div style="color:#94a3b8;">226 open. 45% unresolved. Compounding weekly.</div>
+        </div>
+        <div style="background:rgba(239,68,68,.07);border-radius:8px;padding:10px 13px;font-size:0.82rem;">
+          <div style="color:#e2e8f0;font-weight:600;margin-bottom:3px;">15 employees: trained, still non-compliant.</div>
+          <div style="color:#94a3b8;">HR sees completion rate. Not behavioural risk.</div>
+        </div>
+      </div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 22px;">
+      <div style="font-size:0.7rem;color:#8b5cf6;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;">👻 Ghost Mode — Hidden Reality</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="background:rgba(139,92,246,.07);border-radius:8px;padding:10px 13px;font-size:0.82rem;">
+          <div style="color:#e2e8f0;font-weight:600;margin-bottom:3px;">Payment delay ≠ vendor risk.</div>
+          <div style="color:#94a3b8;">High-score, low-delay vendors invisible to SLA filters.</div>
+        </div>
+        <div style="background:rgba(139,92,246,.07);border-radius:8px;padding:10px 13px;font-size:0.82rem;">
+          <div style="color:#e2e8f0;font-weight:600;margin-bottom:3px;">4 incident types. 1 root cause.</div>
+          <div style="color:#94a3b8;">Approval Delay → PO Expiry → Contract Non-Compl. → Vendor Risk. One broken workflow.</div>
+        </div>
+        <div style="background:rgba(139,92,246,.07);border-radius:8px;padding:10px 13px;font-size:0.82rem;">
+          <div style="color:#e2e8f0;font-weight:600;margin-bottom:3px;">Training completion is a vanity metric.</div>
+          <div style="color:#94a3b8;">Behavioural compliance ≠ course completion. HR systems miss this universally.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pipeline flow -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:20px;">
+    <div style="font-size:0.7rem;color:#06b6d4;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px;">⚡ The Solution — 5-Agent Pipeline (God Mode)</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:grid;grid-template-columns:140px 1fr 1fr 60px;gap:10px;font-size:0.78rem;color:#94a3b8;padding:0 4px 6px;border-bottom:1px solid var(--border);">
+        <span>Agent</span><span>Input</span><span>Output</span><span>Time</span>
+      </div>
+      <div onclick="showPanel('agents',document.querySelectorAll('.tab')[5])" style="display:grid;grid-template-columns:140px 1fr 1fr 60px;gap:10px;font-size:0.82rem;background:rgba(99,102,241,.07);border-radius:8px;padding:10px 12px;cursor:pointer;align-items:center;">
+        <span style="color:#6366f1;font-weight:700;">📥 DataAgent</span>
+        <span style="color:#94a3b8;">3 CSVs + JSON</span>
+        <span style="color:#22c55e;">97,001 rows validated</span>
+        <span style="color:#22c55e;">0.02s</span>
+      </div>
+      <div onclick="showPanel('agents',document.querySelectorAll('.tab')[5])" style="display:grid;grid-template-columns:140px 1fr 1fr 60px;gap:10px;font-size:0.82rem;background:rgba(239,68,68,.07);border-radius:8px;padding:10px 12px;cursor:pointer;align-items:center;">
+        <span style="color:#ef4444;font-weight:700;">⚠️ RiskAgent</span>
+        <span style="color:#94a3b8;">DataBundle</span>
+        <span style="color:#ef4444;">12 HIGH · ₹32 Cr · 226 open</span>
+        <span style="color:#22c55e;">0.01s</span>
+      </div>
+      <div onclick="showPanel('agents',document.querySelectorAll('.tab')[5])" style="display:grid;grid-template-columns:140px 1fr 1fr 60px;gap:10px;font-size:0.82rem;background:rgba(59,130,246,.07);border-radius:8px;padding:10px 12px;cursor:pointer;align-items:center;">
+        <span style="color:#3b82f6;font-weight:700;">📈 TrendAgent</span>
+        <span style="color:#94a3b8;">DataBundle</span>
+        <span style="color:#f97316;">MoM +52.2% · DETERIORATING</span>
+        <span style="color:#22c55e;">0.01s</span>
+      </div>
+      <div onclick="showPanel('agents',document.querySelectorAll('.tab')[5])" style="display:grid;grid-template-columns:140px 1fr 1fr 60px;gap:10px;font-size:0.82rem;background:rgba(34,197,94,.07);border-radius:8px;padding:10px 12px;cursor:pointer;align-items:center;">
+        <span style="color:#22c55e;font-weight:700;">📝 BriefAgent</span>
+        <span style="color:#94a3b8;">Risk + Trend</span>
+        <span style="color:#22c55e;">2 CXO Markdown briefs</span>
+        <span style="color:#22c55e;">0.00s</span>
+      </div>
+      <div onclick="showPanel('agents',document.querySelectorAll('.tab')[5])" style="display:grid;grid-template-columns:140px 1fr 1fr 60px;gap:10px;font-size:0.82rem;background:rgba(249,115,22,.07);border-radius:8px;padding:10px 12px;cursor:pointer;align-items:center;">
+        <span style="color:#f97316;font-weight:700;">📊 DashboardAgent</span>
+        <span style="color:#94a3b8;">All outputs</span>
+        <span style="color:#f97316;">9-chart interactive HTML</span>
+        <span style="color:#22c55e;">0.00s</span>
+      </div>
+      <div style="display:grid;grid-template-columns:140px 1fr 1fr 60px;gap:10px;font-size:0.82rem;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);border-radius:8px;padding:10px 12px;align-items:center;margin-top:4px;">
+        <span style="color:#22c55e;font-weight:800;">✅ TOTAL</span>
+        <span style="color:#94a3b8;">97,001 records</span>
+        <span style="color:#22c55e;">3 boardroom outputs</span>
+        <span style="color:#22c55e;font-weight:700;">0.04s</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- OODA + Devil's Advocate -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;">
+      <div style="font-size:0.7rem;color:#f59e0b;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">🎯 OODA Decision Log</div>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:0.8rem;">
+        <div><span style="color:#6366f1;font-weight:700;margin-right:6px;">OBSERVE</span><span style="color:#94a3b8;">+52.2% MoM incident spike detected</span></div>
+        <div><span style="color:#3b82f6;font-weight:700;margin-right:6px;">ORIENT</span><span style="color:#94a3b8;">Approval Delay = root node of 4 types</span></div>
+        <div><span style="color:#f97316;font-weight:700;margin-right:6px;">DECIDE</span><span style="color:#94a3b8;">12 vendors breach dual threshold → escalate</span></div>
+        <div><span style="color:#22c55e;font-weight:700;margin-right:6px;">ACT</span><span style="color:#94a3b8;">Freeze POs · HR watch · 48-hr deadlines</span></div>
+      </div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;">
+      <div style="font-size:0.7rem;color:#ef4444;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">😈 Devil's Advocate</div>
+      <div style="display:flex;flex-direction:column;gap:7px;font-size:0.79rem;">
+        <div><span style="color:#ef4444;font-weight:600;">"Data quality breaks it"</span> <span style="color:#94a3b8;">→ DataAgent normalises BOM, ₹ formats, nulls, dates first.</span></div>
+        <div><span style="color:#ef4444;font-weight:600;">"Thresholds are arbitrary"</span> <span style="color:#94a3b8;">→ Configurable in settings.py, no code changes.</span></div>
+        <div><span style="color:#ef4444;font-weight:600;">"One-off, not a system"</span> <span style="color:#94a3b8;">→ CI on 3.10/3.11/3.12. Runs as cron.</span></div>
+        <div><span style="color:#ef4444;font-weight:600;">"AI hallucination risk"</span> <span style="color:#94a3b8;">→ Zero LLM. Pure deterministic Python.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Second order + How to run -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;">
+      <div style="font-size:0.7rem;color:#22c55e;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">🔁 Second Order Impact</div>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:0.8rem;color:#94a3b8;">
+        <div>→ <strong style="color:#e2e8f0;">Immediate:</strong> Weekly risk brief with named owners, no BI team needed.</div>
+        <div>→ <strong style="color:#e2e8f0;">Second:</strong> Procurement stops approving reactively. Dual-breach catches risk before failure.</div>
+        <div>→ <strong style="color:#e2e8f0;">Third:</strong> Weekly runs accumulate trend data. System becomes predictive, not just descriptive.</div>
+      </div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;">
+      <div style="font-size:0.7rem;color:#06b6d4;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">🚀 Run It (L99 Mode)</div>
+      <div style="font-family:monospace;font-size:0.77rem;background:#0a0c14;border-radius:8px;padding:12px 14px;color:#94a3b8;line-height:2;">
+        <span style="color:#6366f1;">git clone</span> github.com/visitarjun/...<br>
+        <span style="color:#6366f1;">pip install</span> -r requirements.txt<br>
+        <span style="color:#22c55e;">python</span> orchestrator.py \<br>
+        &nbsp;&nbsp;--data-dir data/sample \<br>
+        &nbsp;&nbsp;--output-dir reports/ --verbose
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA row -->
+  <div style="display:flex;gap:12px;flex-wrap:wrap;">
+    <button onclick="showPanel('overview',document.querySelectorAll('.tab')[1])"
+      style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;padding:10px 22px;border-radius:8px;font-size:0.85rem;font-weight:700;cursor:pointer;">
+      📊 Open Dashboard →
+    </button>
+    <button onclick="showPanel('agents',document.querySelectorAll('.tab')[5])"
+      style="background:var(--surface);border:1px solid var(--accent);color:#a5b4fc;padding:10px 22px;border-radius:8px;font-size:0.85rem;font-weight:700;cursor:pointer;">
+      🤖 Watch Agents Run →
+    </button>
+    <a href="https://github.com/visitarjun/IndiBrew-Vendor-Risk-Monitor" target="_blank"
+      style="background:var(--surface);border:1px solid var(--border);color:#94a3b8;padding:10px 22px;border-radius:8px;font-size:0.85rem;font-weight:700;text-decoration:none;display:inline-block;">
+      ⭐ View on GitHub →
+    </a>
+  </div>
+
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
      PANEL 1 — OVERVIEW
 ════════════════════════════════════════════════════ -->
-<div id="panel-overview" class="panel active">
+<div id="panel-overview" class="panel">
 
   <div class="ctrl-bar">
     <label>View:</label>
