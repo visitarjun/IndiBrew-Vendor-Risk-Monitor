@@ -4,8 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IndiBrew GCC — Vendor Risk Monitor Dashboard</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"
-        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" crossorigin="anonymous"></script>
 <style>
   :root {
     --bg:      #0f1117;
@@ -23,850 +22,1278 @@
     --cyan:    #06b6d4;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    font-size: 14px;
-    line-height: 1.6;
-  }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; line-height: 1.6; }
+
+  /* ── Header ── */
   header {
     background: linear-gradient(135deg, #1e1b4b 0%, #0f1117 100%);
     border-bottom: 1px solid var(--border);
-    padding: 24px 32px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  header h1 {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: -0.02em;
-  }
-  header .subtitle { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
-  header .badge {
-    background: var(--accent);
-    color: #fff;
-    padding: 4px 12px;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    font-weight: 600;
-  }
-
-  /* KPI strip */
-  .kpi-strip {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-    gap: 12px;
     padding: 20px 32px;
-    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
   }
-  .kpi-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px 20px;
-  }
-  .kpi-value { font-size: 1.6rem; font-weight: 800; line-height: 1.1; }
-  .kpi-label { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+  header h1 { font-size: 1.35rem; font-weight: 700; color: #fff; letter-spacing: -0.02em; }
+  header .subtitle { color: var(--muted); font-size: 0.82rem; margin-top: 3px; }
+  .badge { background: var(--accent); color: #fff; padding: 4px 12px; border-radius: 9999px; font-size: 0.72rem; font-weight: 600; }
 
-  /* Panel tabs */
-  .tabs {
-    display: flex;
-    gap: 0;
-    border-bottom: 1px solid var(--border);
-    padding: 0 32px;
-    background: var(--surface);
-  }
-  .tab {
-    padding: 12px 24px;
-    cursor: pointer;
-    font-size: 0.88rem;
-    font-weight: 500;
-    color: var(--muted);
-    border-bottom: 2px solid transparent;
-    transition: all .15s;
-  }
+  /* ── KPI strip ── */
+  .kpi-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; padding: 16px 32px; border-bottom: 1px solid var(--border); }
+  .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; cursor: pointer; transition: border-color .2s, transform .15s; position: relative; }
+  .kpi-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .kpi-card.selected { border-color: var(--accent); background: rgba(99,102,241,.1); }
+  .kpi-value { font-size: 1.55rem; font-weight: 800; line-height: 1.1; }
+  .kpi-label { font-size: 0.76rem; color: var(--muted); margin-top: 5px; }
+  .kpi-hint { font-size: 0.68rem; color: var(--accent); margin-top: 3px; }
+
+  /* ── Tabs ── */
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); padding: 0 32px; background: var(--surface); overflow-x: auto; }
+  .tab { padding: 12px 22px; cursor: pointer; font-size: 0.88rem; font-weight: 500; color: var(--muted); border-bottom: 2px solid transparent; transition: all .15s; white-space: nowrap; }
   .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
   .tab:hover { color: var(--text); }
 
-  /* Panels */
-  .panel { display: none; padding: 28px 32px; }
+  /* ── Panels ── */
+  .panel { display: none; padding: 24px 32px; }
   .panel.active { display: block; }
 
-  /* Chart grid */
-  .chart-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
-    gap: 20px;
-    margin-bottom: 20px;
-  }
+  /* ── Chart grid ── */
+  .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 18px; margin-bottom: 18px; }
   .chart-grid.wide { grid-template-columns: 1fr; }
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px 24px;
-  }
-  .card-title {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .card-title .tag {
-    font-size: 0.7rem;
-    background: rgba(99,102,241,.18);
-    color: var(--accent);
-    padding: 2px 8px;
-    border-radius: 9999px;
-  }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 22px; }
+  .card-title { font-size: 0.88rem; font-weight: 600; color: var(--text); margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .tag { font-size: 0.68rem; background: rgba(99,102,241,.18); color: var(--accent); padding: 2px 8px; border-radius: 9999px; }
   .chart-wrap { position: relative; height: 280px; }
   .chart-wrap.tall { height: 360px; }
 
-  /* Ghost Mode insight box */
-  .insight {
-    background: rgba(99,102,241,.08);
-    border-left: 3px solid var(--accent);
-    border-radius: 0 8px 8px 0;
-    padding: 14px 18px;
-    margin-top: 20px;
-    font-size: 0.84rem;
-    color: var(--muted);
-  }
+  /* ── Controls bar ── */
+  .ctrl-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+  .ctrl-bar label { font-size: 0.78rem; color: var(--muted); }
+  select, input[type=range] { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; color: var(--text); padding: 4px 8px; font-size: 0.8rem; cursor: pointer; }
+  select:focus, input:focus { outline: none; border-color: var(--accent); }
+  .btn-sm { background: rgba(99,102,241,.15); border: 1px solid var(--accent); color: var(--accent); padding: 4px 12px; border-radius: 6px; font-size: 0.78rem; cursor: pointer; font-weight: 600; transition: background .15s; }
+  .btn-sm:hover { background: rgba(99,102,241,.3); }
+  .btn-sm.active { background: var(--accent); color: #fff; }
+
+  /* ── Data table ── */
+  .tbl-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th { background: #1e2240; color: var(--muted); padding: 10px 14px; text-align: left; font-weight: 600; cursor: pointer; user-select: none; white-space: nowrap; }
+  th:hover { color: var(--text); }
+  th .sort-arrow { opacity: 0.4; margin-left: 4px; }
+  th.sorted .sort-arrow { opacity: 1; color: var(--accent); }
+  td { padding: 9px 14px; border-top: 1px solid var(--border); color: var(--text); white-space: nowrap; }
+  tr { transition: background .1s; }
+  tr:hover td { background: rgba(99,102,241,.06); cursor: pointer; }
+  .chip { display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 0.7rem; font-weight: 700; }
+  .chip-red    { background: rgba(239,68,68,.2);   color: #ef4444; }
+  .chip-orange { background: rgba(249,115,22,.2);  color: #f97316; }
+  .chip-yellow { background: rgba(245,158,11,.2);  color: #f59e0b; }
+  .chip-green  { background: rgba(34,197,94,.2);   color: #22c55e; }
+  .chip-purple { background: rgba(139,92,246,.2);  color: #8b5cf6; }
+  .bar-cell { display: flex; align-items: center; gap: 8px; }
+  .mini-bar { height: 6px; border-radius: 3px; }
+  .search-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; color: var(--text); font-size: 0.82rem; width: 220px; }
+  .search-box:focus { outline: none; border-color: var(--accent); }
+
+  /* ── Insight box ── */
+  .insight { background: rgba(99,102,241,.07); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 12px 16px; margin-top: 16px; font-size: 0.82rem; color: var(--muted); }
   .insight strong { color: var(--text); }
 
-  /* Footer */
-  footer {
-    text-align: center;
-    padding: 20px;
-    font-size: 0.75rem;
-    color: var(--muted);
-    border-top: 1px solid var(--border);
-  }
+  /* ── Modal ── */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px; max-width: 680px; width: 100%; max-height: 85vh; overflow-y: auto; position: relative; }
+  .modal-close { position: absolute; top: 16px; right: 20px; background: none; border: none; color: var(--muted); font-size: 1.2rem; cursor: pointer; }
+  .modal-close:hover { color: var(--text); }
+  .modal h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; }
+  .modal .sub { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+  .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+  .modal-kpi { background: var(--bg); border-radius: 8px; padding: 12px 16px; }
+  .modal-kpi .val { font-size: 1.25rem; font-weight: 800; }
+  .modal-kpi .lbl { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
+  .modal-chart-wrap { height: 200px; position: relative; margin-top: 12px; }
+  .action-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .action-list li { background: var(--bg); border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; display: flex; gap: 10px; }
+  .action-list li::before { content: '→'; color: var(--accent); font-weight: 700; }
+
+  /* ── Slider row ── */
+  .slider-row { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: var(--muted); }
+  .slider-row span { min-width: 50px; color: var(--text); font-weight: 600; }
+
+  /* ── Footer ── */
+  footer { text-align: center; padding: 18px; font-size: 0.72rem; color: var(--muted); border-top: 1px solid var(--border); }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 </style>
 </head>
 <body>
 
+<!-- ══════════════════════ HEADER ══════════════════════ -->
 <header>
   <div>
     <h1>IndiBrew GCC — Vendor Risk Monitor</h1>
-    <div class="subtitle">Hyderabad · 5,000 employees · 2,000 vendors · 90,000+ incidents</div>
+    <div class="subtitle">Hyderabad · 5,000 employees · 2,000 vendors · 90,001 incidents · as of 6 May 2026</div>
   </div>
-  <div class="badge">LIVE ANALYSIS</div>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+    <div id="header-signal" style="font-size:0.78rem;font-weight:600;color:#ef4444;padding:4px 12px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:9999px;">🔴 DETERIORATING</div>
+    <div class="badge">LIVE ANALYSIS</div>
+  </div>
 </header>
 
-<!-- KPI Strip -->
-<div class="kpi-strip">
-<div class="kpi-card"><div class="kpi-value" style="color:#ef4444">₹32 Cr</div><div class="kpi-label">Total Contract Exposure</div></div>
-<div class="kpi-card"><div class="kpi-value" style="color:#f97316">12</div><div class="kpi-label">High-Risk Vendors</div></div>
-<div class="kpi-card"><div class="kpi-value" style="color:#f59e0b">226</div><div class="kpi-label">Open Incidents</div></div>
-<div class="kpi-card"><div class="kpi-value" style="color:#8b5cf6">45.2%</div><div class="kpi-label">Unresolved Rate</div></div>
-<div class="kpi-card"><div class="kpi-value" style="color:#06b6d4">15</div><div class="kpi-label">At-Risk Staff</div></div>
-<div class="kpi-card"><div class="kpi-value" style="color:#ef4444">DETERIORATING</div><div class="kpi-label">30-Day Trend Signal</div></div>
+<!-- ══════════════════════ KPI STRIP ══════════════════════ -->
+<div class="kpi-strip" id="kpi-strip">
+  <div class="kpi-card" onclick="kpiDrill('exposure')" title="Click to drill down">
+    <div class="kpi-value" style="color:#ef4444">₹32 Cr</div>
+    <div class="kpi-label">Total Contract Exposure</div>
+    <div class="kpi-hint">↑ Click for vendor breakdown</div>
+  </div>
+  <div class="kpi-card" onclick="kpiDrill('highRisk')" title="Click to drill down">
+    <div class="kpi-value" style="color:#f97316">12</div>
+    <div class="kpi-label">High-Risk Vendors</div>
+    <div class="kpi-hint">↑ Click to view list</div>
+  </div>
+  <div class="kpi-card" onclick="kpiDrill('incidents')" title="Click to drill down">
+    <div class="kpi-value" style="color:#f59e0b">226</div>
+    <div class="kpi-label">Open Incidents</div>
+    <div class="kpi-hint">↑ Click for severity split</div>
+  </div>
+  <div class="kpi-card" onclick="kpiDrill('unresolved')" title="Click to drill down">
+    <div class="kpi-value" style="color:#8b5cf6">45.2%</div>
+    <div class="kpi-label">Unresolved Rate</div>
+    <div class="kpi-hint">↑ Click for dept breakdown</div>
+  </div>
+  <div class="kpi-card" onclick="kpiDrill('staff')" title="Click to drill down">
+    <div class="kpi-value" style="color:#06b6d4">15</div>
+    <div class="kpi-label">At-Risk Staff</div>
+    <div class="kpi-hint">↑ Click for employee list</div>
+  </div>
+  <div class="kpi-card" onclick="showPanel('trend',document.querySelectorAll('.tab')[2])">
+    <div class="kpi-value" style="color:#ef4444;font-size:1.1rem;">DETERIORATING</div>
+    <div class="kpi-label">30-Day Trend Signal</div>
+    <div class="kpi-hint">↑ Click to open Trend tab</div>
+  </div>
 </div>
 
-<!-- Tabs -->
+<!-- ══════════════════════ TABS ══════════════════════ -->
 <div class="tabs">
-  <div class="tab active" onclick="showPanel('overview',this)">📊 Overview</div>
-  <div class="tab"        onclick="showPanel('risk',this)">🔴 Risk Detail</div>
-  <div class="tab"        onclick="showPanel('trend',this)">📈 30-Day Trend</div>
-  <div class="tab"        onclick="showPanel('agents',this)">🤖 Agent Pipeline</div>
+  <div class="tab active"  onclick="showPanel('overview',this)">📊 Overview</div>
+  <div class="tab"         onclick="showPanel('risk',this)">🔴 Risk Detail</div>
+  <div class="tab"         onclick="showPanel('trend',this)">📈 30-Day Trend</div>
+  <div class="tab"         onclick="showPanel('vendors',this)">🏢 Vendor Table</div>
+  <div class="tab"         onclick="showPanel('agents',this)">🤖 Agent Pipeline</div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════════ -->
-<!-- PANEL 1: OVERVIEW                                                   -->
-<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- ════════════════════════════════════════════════════
+     PANEL 1 — OVERVIEW
+════════════════════════════════════════════════════ -->
 <div id="panel-overview" class="panel active">
-  <div class="chart-grid">
 
+  <div class="ctrl-bar">
+    <label>View:</label>
+    <button class="btn-sm active" id="view-all"   onclick="setDeptView('all')">All Departments</button>
+    <button class="btn-sm" id="view-top5"          onclick="setDeptView('top5')">Top 5 Only</button>
+    <label style="margin-left:12px;">Chart type:</label>
+    <button class="btn-sm active" id="ct-bar"     onclick="toggleDeptChartType('bar')">Bar</button>
+    <button class="btn-sm"        id="ct-line"    onclick="toggleDeptChartType('line')">Line</button>
+    <label style="margin-left:12px;">Risk threshold:</label>
+    <div class="slider-row">
+      <input type="range" min="6" max="10" step="0.1" value="7" id="thresh-slider" oninput="updateThreshold(this.value)">
+      <span id="thresh-val">7.0</span>
+    </div>
+  </div>
+
+  <div class="chart-grid">
     <div class="card">
       <div class="card-title">
         Incidents by Department
-        <span class="tag">Total vs Open</span>
+        <span class="tag" id="dept-count-tag">10 depts</span>
       </div>
-      <div class="chart-wrap">
-        <canvas id="deptChart"></canvas>
-      </div>
+      <div class="chart-wrap"><canvas id="deptChart"></canvas></div>
     </div>
-
     <div class="card">
       <div class="card-title">
         Vendor Risk Matrix
-        <span class="tag">Score × Payment Delay × Exposure</span>
+        <span class="tag">Click a bubble for vendor detail</span>
       </div>
-      <div class="chart-wrap">
-        <canvas id="scatterChart"></canvas>
-      </div>
+      <div class="chart-wrap"><canvas id="scatterChart"></canvas></div>
     </div>
-
   </div>
 
   <div class="chart-grid wide">
     <div class="card">
       <div class="card-title">
-        Top 15 Vendors by Contract Exposure (₹ Lakh)
-        <span class="tag">High-Risk Only</span>
+        Contract Exposure by Vendor (₹ Lakh)
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span class="tag">Click bar for vendor detail</span>
+          <button class="btn-sm" onclick="sortExposure()">⇅ Sort</button>
+        </div>
       </div>
-      <div class="chart-wrap tall">
-        <canvas id="exposureChart"></canvas>
-      </div>
+      <div class="chart-wrap tall"><canvas id="exposureChart"></canvas></div>
     </div>
   </div>
 
   <div class="insight">
     <strong>👻 Ghost Mode:</strong>
-    The scatter chart reveals vendors clustering in the top-left quadrant — high risk scores
-    with low payment delays. This is the blind spot: risk flags that are NOT driven by payment
-    behaviour alone. These vendors require a qualitative contract review, not just SLA monitoring.
+    Vendors in the top-left of the scatter matrix (high score, low payment delay) are the hidden threat.
+    Risk flags <em>not</em> driven by payment behaviour require a qualitative contract review — not just SLA monitoring.
+    <strong style="color:var(--accent);">Drag the Risk Threshold slider above</strong> to redefine your HIGH boundary and watch the KPIs update in real time.
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════════ -->
-<!-- PANEL 2: RISK DETAIL                                                -->
-<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- ════════════════════════════════════════════════════
+     PANEL 2 — RISK DETAIL
+════════════════════════════════════════════════════ -->
 <div id="panel-risk" class="panel">
+
+  <div class="ctrl-bar">
+    <label>Severity filter:</label>
+    <button class="btn-sm active" id="sev-all"      onclick="setSeverity('all')">All</button>
+    <button class="btn-sm"        id="sev-critical"  onclick="setSeverity('CRITICAL')">CRITICAL</button>
+    <button class="btn-sm"        id="sev-high"      onclick="setSeverity('HIGH')">HIGH</button>
+    <button class="btn-sm"        id="sev-medium"    onclick="setSeverity('MEDIUM')">MEDIUM</button>
+    <label style="margin-left:12px;">Highlight:</label>
+    <button class="btn-sm active" id="emp-show-risk" onclick="toggleEmpLayer()">Risk Score</button>
+  </div>
+
   <div class="chart-grid">
-
     <div class="card">
       <div class="card-title">
-        Top Employee Risk Profile
-        <span class="tag">Incidents + Composite Score</span>
+        Employee Risk Profile
+        <span class="tag">Click bar for employee detail</span>
       </div>
-      <div class="chart-wrap tall">
-        <canvas id="empChart"></canvas>
-      </div>
+      <div class="chart-wrap tall"><canvas id="empChart"></canvas></div>
     </div>
-
     <div class="card">
       <div class="card-title">
-        Open Incident Severity Distribution
-        <span class="tag">High-Risk Incidents Only</span>
+        Open Incident Severity
+        <span class="tag" id="sev-total-tag">211 open</span>
       </div>
-      <div class="chart-wrap">
-        <canvas id="severityChart"></canvas>
-      </div>
+      <div class="chart-wrap"><canvas id="severityChart"></canvas></div>
     </div>
-
   </div>
 
   <div class="chart-grid wide">
     <div class="card">
       <div class="card-title">
-        Open Financial Exposure by Department (₹ Lakh)
-        <span class="tag">Unresolved Incidents &gt; ₹1L</span>
+        Open Exposure by Department (₹ Lakh)
+        <span class="tag">Click bar for dept detail</span>
       </div>
-      <div class="chart-wrap">
-        <canvas id="deptExposureChart"></canvas>
-      </div>
+      <div class="chart-wrap"><canvas id="deptExposureChart"></canvas></div>
     </div>
   </div>
 
   <div class="insight">
     <strong>🧠 First Principles:</strong>
     Training completion ≠ training effectiveness.
-    The employee risk chart separates employees who completed training but still accumulate
-    maximum compliance incidents — this is the metric HR systems universally miss.
+    Employees with full training completion still accumulate maximum compliance incidents — the metric HR universally misses.
+    <strong style="color:var(--accent);">Click any bar</strong> on the employee chart to see the full profile.
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════════ -->
-<!-- PANEL 3: 30-DAY TREND                                               -->
-<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- ════════════════════════════════════════════════════
+     PANEL 3 — 30-DAY TREND
+════════════════════════════════════════════════════ -->
 <div id="panel-trend" class="panel">
+
+  <div class="ctrl-bar">
+    <label>Rolling window:</label>
+    <button class="btn-sm active" id="w-30" onclick="setWindow(30)">30 days</button>
+    <button class="btn-sm"        id="w-14" onclick="setWindow(14)">14 days</button>
+    <button class="btn-sm"        id="w-7"  onclick="setWindow(7)">7 days</button>
+    <label style="margin-left:12px;">Annotation:</label>
+    <button class="btn-sm active" id="ann-toggle" onclick="toggleAnnotations()">Ghost Flags ON</button>
+    <label style="margin-left:12px;">MoM delta colours:</label>
+    <button class="btn-sm active" id="delta-color" onclick="toggleDeltaColors()">Red/Green</button>
+  </div>
+
   <div class="chart-grid wide">
     <div class="card">
       <div class="card-title">
-        Daily Incident Volume (Last 30 Days)
-        <span class="tag">Current Window</span>
+        Daily Incident Volume — Rolling Window
+        <span class="tag" id="window-tag">Last 30 days</span>
       </div>
-      <div class="chart-wrap">
-        <canvas id="dailyChart"></canvas>
-      </div>
+      <div class="chart-wrap"><canvas id="dailyChart"></canvas></div>
     </div>
   </div>
 
   <div class="chart-grid">
-
     <div class="card">
       <div class="card-title">
         Department Incidents: Current vs Prior Month
-        <span class="tag">MoM Comparison</span>
+        <span class="tag">Click bar for dept drill-down</span>
       </div>
-      <div class="chart-wrap tall">
-        <canvas id="deptMoMChart"></canvas>
-      </div>
+      <div class="chart-wrap tall"><canvas id="deptMoMChart"></canvas></div>
     </div>
-
     <div class="card">
       <div class="card-title">
         Incident Type MoM Delta (%)
-        <span class="tag">Red = Rising · Green = Falling</span>
+        <span class="tag" id="delta-tag">All rising 🔴</span>
       </div>
-      <div class="chart-wrap tall">
-        <canvas id="typeMoMChart"></canvas>
-      </div>
+      <div class="chart-wrap tall"><canvas id="typeMoMChart"></canvas></div>
     </div>
-
   </div>
 
   <div class="insight">
     <strong>👻 Ghost Mode — Approval Delay Root Node:</strong>
-    Rising Approval Delay incidents are not a single problem. They are the first node
-    in a four-incident chain: Approval Delay → PO Expiry → Contract Non-Compliance → Vendor Risk.
+    Approval Delay → PO Expiry → Contract Non-Compliance → Vendor Risk.
     All four incident types share one root cause: the procurement approval workflow is broken.
-    Fixing the workflow fixes all four metrics simultaneously.
+    <strong style="color:var(--accent);">Toggle the Ghost Flags</strong> button above to show/hide the anomaly annotations on the daily chart.
   </div>
 </div>
 
+<!-- ════════════════════════════════════════════════════
+     PANEL 4 — VENDOR TABLE
+════════════════════════════════════════════════════ -->
+<div id="panel-vendors" class="panel">
 
+  <div class="ctrl-bar" style="margin-bottom:14px;">
+    <input class="search-box" type="text" id="vendor-search" placeholder="🔍 Search vendor ID, name, dept…" oninput="filterVendors()">
+    <label>Risk level:</label>
+    <select id="risk-filter" onchange="filterVendors()">
+      <option value="all">All Levels</option>
+      <option value="HIGH">HIGH</option>
+      <option value="MEDIUM">MEDIUM</option>
+      <option value="LOW">LOW</option>
+    </select>
+    <label>Department:</label>
+    <select id="dept-filter" onchange="filterVendors()">
+      <option value="all">All Depts</option>
+      <option>Procurement</option>
+      <option>Compliance</option>
+      <option>Operations</option>
+      <option>Risk & Audit</option>
+      <option>Finance</option>
+      <option>IT</option>
+      <option>HR</option>
+      <option>Legal</option>
+      <option>Supply Chain</option>
+      <option>Vendor Management</option>
+    </select>
+    <span id="vendor-count" style="font-size:0.78rem;color:var(--muted);margin-left:8px;"></span>
+    <button class="btn-sm" style="margin-left:auto;" onclick="exportCSV()">⬇ Export CSV</button>
+  </div>
+
+  <div class="tbl-wrap">
+    <table id="vendor-table">
+      <thead>
+        <tr>
+          <th onclick="sortTable(0)" data-col="0">Vendor ID <span class="sort-arrow">↕</span></th>
+          <th onclick="sortTable(1)" data-col="1">Category <span class="sort-arrow">↕</span></th>
+          <th onclick="sortTable(2)" data-col="2">Risk Level <span class="sort-arrow">↕</span></th>
+          <th onclick="sortTable(3)" data-col="3">Risk Score <span class="sort-arrow">↕</span></th>
+          <th onclick="sortTable(4)" data-col="4">Pay Delay (d) <span class="sort-arrow">↕</span></th>
+          <th onclick="sortTable(5)" data-col="5">Exposure (₹L) <span class="sort-arrow">↕</span></th>
+          <th onclick="sortTable(6)" data-col="6">Open Incidents <span class="sort-arrow">↕</span></th>
+          <th onclick="sortTable(7)" data-col="7">Department <span class="sort-arrow">↕</span></th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="vendor-tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="insight" style="margin-top:16px;">
+    <strong>💡 How to use:</strong>
+    Search, filter, and sort to zero in on specific vendors.
+    <strong style="color:var(--accent);">Click any row</strong> for a full vendor drill-down with incident history and recommended actions.
+    Use <strong style="color:var(--accent);">Export CSV</strong> to take the filtered view to Excel or Sheets.
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     PANEL 5 — AGENT PIPELINE
+════════════════════════════════════════════════════ -->
 <div id="panel-agents" class="panel">
-<div style="max-width:960px;margin:0 auto;padding:24px 0 48px;">
+<div style="max-width:960px;margin:0 auto;padding:8px 0 48px;">
 
-  <!-- Header -->
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;flex-wrap:wrap;gap:12px;">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
     <div>
-      <h2 style="font-size:1.15rem;font-weight:700;color:#fff;margin-bottom:4px;">Agent Pipeline — Live Execution</h2>
-      <p style="color:var(--muted);font-size:0.85rem;">Watch each agent run, process data, and hand off results to the next agent.</p>
+      <h2 style="font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:4px;">Agent Pipeline — Live Execution Simulation</h2>
+      <p style="color:var(--muted);font-size:0.82rem;">Watch each agent run, process data, and hand off results to the next.</p>
     </div>
     <button id="run-btn" onclick="runPipeline()"
-      style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:0.9rem;font-weight:700;cursor:pointer;letter-spacing:0.02em;">
+      style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:0.88rem;font-weight:700;cursor:pointer;">
       ▶ Run Pipeline
     </button>
   </div>
 
-  <!-- Terminal output -->
-  <div id="terminal" style="background:#0a0c14;border:1px solid #2d3150;border-radius:10px;padding:18px 20px;font-family:monospace;font-size:0.82rem;min-height:60px;margin-bottom:24px;line-height:1.8;display:none;">
-  </div>
+  <div id="terminal" style="background:#0a0c14;border:1px solid #2d3150;border-radius:10px;padding:16px 18px;font-family:monospace;font-size:0.8rem;min-height:58px;margin-bottom:20px;line-height:1.85;display:none;"></div>
 
-  <!-- Progress bar -->
-  <div id="progress-wrap" style="display:none;margin-bottom:28px;">
-    <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-      <span style="font-size:0.78rem;color:var(--muted);" id="progress-label">Initialising…</span>
-      <span style="font-size:0.78rem;color:var(--muted);" id="progress-time">0.00s</span>
+  <div id="progress-wrap" style="display:none;margin-bottom:24px;">
+    <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+      <span style="font-size:0.76rem;color:var(--muted);" id="progress-label">Initialising…</span>
+      <span style="font-size:0.76rem;color:var(--muted);" id="progress-time">0.00s</span>
     </div>
     <div style="background:#1a1d2e;border-radius:999px;height:6px;overflow:hidden;">
       <div id="progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#6366f1,#22c55e);border-radius:999px;transition:width 0.3s ease;"></div>
     </div>
   </div>
 
-  <!-- Agent cards (revealed one by one) -->
-  <div style="display:flex;flex-direction:column;gap:14px;" id="agent-cards">
-
-    <div class="acard" id="acard-1" style="display:none;background:var(--surface);border:1px solid #6366f1;border-radius:12px;overflow:hidden;">
-      <div style="background:#1e1b4b;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-size:1.2rem;">📥</span>
-          <div>
-            <div style="font-weight:700;color:#fff;font-size:0.9rem;">1 / 5 · DataAgent</div>
-            <div style="font-size:0.75rem;color:var(--muted);">agents/data_agent.py · Ingest, validate, normalise</div>
-          </div>
-        </div>
-        <span class="status-badge" style="background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44;padding:3px 10px;border-radius:9999px;font-size:0.72rem;font-weight:600;">⟳ RUNNING</span>
-      </div>
-      <div style="padding:14px 18px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-        <div>
-          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Input</div>
-          <div style="font-family:monospace;font-size:0.79rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#94a3b8;">
-            ibsh_vendors_2k.csv<br>ibsh_incidents_90k.csv<br>ibsh_employees_5k.csv<br>enterprise_summary.json
-          </div>
-        </div>
-        <div>
-          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Output → DataBundle</div>
-          <div class="output-reveal" style="font-family:monospace;font-size:0.79rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#22c55e;opacity:0;transition:opacity 0.5s;">
-            vendors:   2,000 rows ✓<br>incidents: 90,001 rows ✓<br>employees: 5,000 rows ✓<br>as_of: 2026-05-06 ✓
-          </div>
-        </div>
-      </div>
-      <div style="padding:0 18px 12px;font-size:0.78rem;color:var(--muted);">Ghost mode: BOM stripping · Indian ₹ format · date normalisation · null coercion</div>
-    </div>
-
-    <div class="acard" id="acard-2" style="display:none;background:var(--surface);border:1px solid #ef4444;border-radius:12px;overflow:hidden;">
-      <div style="background:#1e1b4b;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-size:1.2rem;">⚠️</span>
-          <div>
-            <div style="font-weight:700;color:#fff;font-size:0.9rem;">2 / 5 · RiskAgent</div>
-            <div style="font-size:0.75rem;color:var(--muted);">agents/risk_agent.py · Score vendors, employees, departments</div>
-          </div>
-        </div>
-        <span class="status-badge" style="background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44;padding:3px 10px;border-radius:9999px;font-size:0.72rem;font-weight:600;">⟳ RUNNING</span>
-      </div>
-      <div style="padding:14px 18px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-        <div>
-          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Input → DataBundle</div>
-          <div style="font-family:monospace;font-size:0.79rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#94a3b8;">
-            2,000 vendors<br>90,001 incidents<br>5,000 employees<br>Thresholds: score&gt;7 &amp; delay&gt;15d
-          </div>
-        </div>
-        <div>
-          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Output → RiskReport</div>
-          <div class="output-reveal" style="font-family:monospace;font-size:0.79rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#ef4444;opacity:0;transition:opacity 0.5s;">
-            HIGH vendors:  12 🔴<br>Exposure:      ₹32 Cr 🔴<br>Open incidents: 226 🟡<br>At-risk staff:  15 🟡
-          </div>
-        </div>
-      </div>
-      <div style="padding:0 18px 12px;font-size:0.78rem;color:var(--muted);">Dual-breach logic: score &gt; 7 AND delay &gt; 15d → HIGH · CRITICAL at score ≥ 9.5</div>
-    </div>
-
-    <div class="acard" id="acard-3" style="display:none;background:var(--surface);border:1px solid #3b82f6;border-radius:12px;overflow:hidden;">
-      <div style="background:#1e1b4b;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-size:1.2rem;">📈</span>
-          <div>
-            <div style="font-weight:700;color:#fff;font-size:0.9rem;">3 / 5 · TrendAgent</div>
-            <div style="font-size:0.75rem;color:var(--muted);">agents/trend_agent.py · 30-day MoM window analysis</div>
-          </div>
-        </div>
-        <span class="status-badge" style="background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44;padding:3px 10px;border-radius:9999px;font-size:0.72rem;font-weight:600;">⟳ RUNNING</span>
-      </div>
-      <div style="padding:14px 18px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-        <div>
-          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Input → DataBundle</div>
-          <div style="font-family:monospace;font-size:0.79rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#94a3b8;">
-            Window: Apr 6 – May 6<br>Prior:  Mar 6 – Apr 5<br>90,001 incident rows
-          </div>
-        </div>
-        <div>
-          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Output → TrendReport</div>
-          <div class="output-reveal" style="font-family:monospace;font-size:0.79rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#f97316;opacity:0;transition:opacity 0.5s;">
-            Volume MoM:  +52.2% ↑<br>Open rate:   +51.6% ↑<br>Signal: DETERIORATING 🔴<br>Ghost flags: 3 detected
-          </div>
-        </div>
-      </div>
-      <div style="padding:0 18px 12px;font-size:0.78rem;color:var(--muted);">OODA: Observe volume → Orient by dept → Decide signal → Act on anomalies</div>
-    </div>
-
-    <div class="acard" id="acard-4" style="display:none;background:var(--surface);border:1px solid #22c55e;border-radius:12px;overflow:hidden;">
-      <div style="background:#1e1b4b;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-size:1.2rem;">📝</span>
-          <div>
-            <div style="font-weight:700;color:#fff;font-size:0.9rem;">4 / 5 · BriefAgent</div>
-            <div style="font-size:0.75rem;color:var(--muted);">agents/brief_agent.py · Generate CXO-ready Markdown briefs</div>
-          </div>
-        </div>
-        <span class="status-badge" style="background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44;padding:3px 10px;border-radius:9999px;font-size:0.72rem;font-weight:600;">⟳ RUNNING</span>
-      </div>
-      <div style="padding:14px 18px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-        <div>
-          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Input → RiskReport + TrendReport</div>
-          <div style="font-family:monospace;font-size:0.79rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#94a3b8;">
-            12 HIGH vendors<br>226 open incidents<br>Signal: DETERIORATING<br>3 ghost anomaly flags
-          </div>
-        </div>
-        <div>
-          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Output → 2 Markdown Briefs</div>
-          <div class="output-reveal" style="font-family:monospace;font-size:0.79rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#22c55e;opacity:0;transition:opacity 0.5s;">
-            Weekly_Risk_Brief.md ✓<br>30Day_Trend_Brief.md ✓<br>7 sections, named owners<br>48-hr action deadlines
-          </div>
-        </div>
-      </div>
-      <div style="padding:0 18px 12px;font-size:0.78rem;color:var(--muted);">9 reasoning frameworks: First Principles · Ghost Mode · OODA · Devil's Advocate · Inversion</div>
-    </div>
-
-    <div class="acard" id="acard-5" style="display:none;background:var(--surface);border:1px solid #f97316;border-radius:12px;overflow:hidden;">
-      <div style="background:#1e1b4b;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-size:1.2rem;">📊</span>
-          <div>
-            <div style="font-weight:700;color:#fff;font-size:0.9rem;">5 / 5 · DashboardAgent</div>
-            <div style="font-size:0.75rem;color:var(--muted);">agents/dashboard_agent.py · Render interactive HTML dashboard</div>
-          </div>
-        </div>
-        <span class="status-badge" style="background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44;padding:3px 10px;border-radius:9999px;font-size:0.72rem;font-weight:600;">⟳ RUNNING</span>
-      </div>
-      <div style="padding:14px 18px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-        <div>
-          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Input → All upstream outputs</div>
-          <div style="font-family:monospace;font-size:0.79rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#94a3b8;">
-            DataBundle<br>RiskReport<br>TrendReport<br>BriefAgent outputs
-          </div>
-        </div>
-        <div>
-          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Output → This Dashboard</div>
-          <div class="output-reveal" style="font-family:monospace;font-size:0.79rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#f97316;opacity:0;transition:opacity 0.5s;">
-            9 Chart.js charts ✓<br>4 tabs rendered ✓<br>Zero server needed ✓<br>You are viewing this ✓
-          </div>
-        </div>
-      </div>
-      <div style="padding:0 18px 12px;font-size:0.78rem;color:var(--muted);">Self-contained HTML · works offline · no build step</div>
-    </div>
-
+  <div style="display:flex;flex-direction:column;gap:12px;" id="agent-cards">
+    <!-- Agent cards injected by JS below -->
   </div>
 
-  <!-- Final summary (hidden until complete) -->
-  <div id="pipeline-complete" style="display:none;margin-top:20px;background:var(--surface);border:1px solid #22c55e;border-radius:12px;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">
+  <div id="pipeline-complete" style="display:none;margin-top:18px;background:var(--surface);border:1px solid #22c55e;border-radius:12px;padding:16px 20px;flex-direction:row;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
     <div>
-      <div style="font-weight:700;color:#22c55e;font-size:1rem;">✅ Pipeline complete — 0.04s total</div>
-      <div style="font-size:0.8rem;color:var(--muted);margin-top:4px;">97,001 records processed · 3 outputs generated · 68/68 tests passing</div>
+      <div style="font-weight:700;color:#22c55e;font-size:0.95rem;">✅ Pipeline complete — 0.04s total</div>
+      <div style="font-size:0.78rem;color:var(--muted);margin-top:3px;">97,001 records processed · 3 outputs generated · 68/68 tests passing</div>
     </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <a href="https://github.com/visitarjun/IndiBrew-Vendor-Risk-Monitor" target="_blank"
-         style="background:#1e1b4b;border:1px solid #6366f1;color:#a5b4fc;padding:6px 14px;border-radius:6px;font-size:0.78rem;text-decoration:none;font-weight:600;">View Source</a>
+         style="background:#1e1b4b;border:1px solid #6366f1;color:#a5b4fc;padding:5px 12px;border-radius:6px;font-size:0.75rem;text-decoration:none;font-weight:600;">View Source</a>
       <a href="https://github.com/visitarjun/IndiBrew-Vendor-Risk-Monitor/actions" target="_blank"
-         style="background:#1e1b4b;border:1px solid #22c55e;color:#86efac;padding:6px 14px;border-radius:6px;font-size:0.78rem;text-decoration:none;font-weight:600;">CI Status</a>
+         style="background:#1e1b4b;border:1px solid #22c55e;color:#86efac;padding:5px 12px;border-radius:6px;font-size:0.75rem;text-decoration:none;font-weight:600;">CI Status</a>
     </div>
   </div>
 
 </div>
 </div>
 
-<script>
-function runPipeline() {
-  const btn = document.getElementById('run-btn');
-  btn.disabled = true;
-  btn.textContent = '⟳ Running…';
-  btn.style.opacity = '0.6';
-
-  const terminal = document.getElementById('terminal');
-  terminal.style.display = 'block';
-  terminal.innerHTML = '';
-
-  const progressWrap = document.getElementById('progress-wrap');
-  progressWrap.style.display = 'block';
-
-  const complete = document.getElementById('pipeline-complete');
-  complete.style.display = 'none';
-
-  // Hide all cards
-  for (let i = 1; i <= 5; i++) {
-    const c = document.getElementById('acard-' + i);
-    c.style.display = 'none';
-    c.querySelector('.output-reveal').style.opacity = '0';
-    c.querySelector('.status-badge').innerHTML = '⟳ RUNNING';
-    c.querySelector('.status-badge').style.cssText = 'background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44;padding:3px 10px;border-radius:9999px;font-size:0.72rem;font-weight:600;';
-  }
-
-  const termLines = [
-    {t:200,  color:'#6366f1', text:'IndiBrew GCC Vendor Risk Monitor v1.0'},
-    {t:400,  color:'#94a3b8', text:'Loading configuration from Settings.from_env()…'},
-    {t:700,  color:'#94a3b8', text:'Data directory: data/sample/  |  Output: /tmp/reports/'},
-    {t:1000, color:'#f59e0b', text:''},
-    {t:1100, color:'#f59e0b', text:'▶ [1/5] DataAgent — ingesting 97,001 records…'},
-    {t:2200, color:'#22c55e', text:'   ✓ 2,000 vendors  |  90,001 incidents  |  5,000 employees  (0.02s)'},
-    {t:2600, color:'#f59e0b', text:'▶ [2/5] RiskAgent — scoring vendors and employees…'},
-    {t:3600, color:'#ef4444', text:'   ✓ 12 HIGH-risk vendors  |  ₹32 Cr exposure  |  226 open incidents  (0.01s)'},
-    {t:4000, color:'#f59e0b', text:'▶ [3/5] TrendAgent — 30-day MoM window analysis…'},
-    {t:5000, color:'#f97316', text:'   ✓ Volume MoM +52.2%  |  Signal: DETERIORATING  |  3 ghost flags  (0.01s)'},
-    {t:5400, color:'#f59e0b', text:'▶ [4/5] BriefAgent — generating CXO briefs…'},
-    {t:6400, color:'#22c55e', text:'   ✓ Weekly_Risk_Brief.md  |  30Day_Trend_Brief.md  (0.00s)'},
-    {t:6800, color:'#f59e0b', text:'▶ [5/5] DashboardAgent — rendering 9 charts…'},
-    {t:7800, color:'#22c55e', text:'   ✓ IndiBrew_GCC_Dashboard.html  (0.00s)'},
-    {t:8200, color:'#22c55e', text:''},
-    {t:8300, color:'#22c55e', text:'✅ Pipeline complete in 0.04s'},
-    {t:8400, color:'#94a3b8', text:'   ₹32 Cr exposure scanned  |  12 vendors flagged  |  226 incidents tracked'},
-  ];
-
-  const agentTimes = [1100, 2600, 4000, 5400, 6800];
-  const agentDone  = [2200, 3600, 5000, 6400, 7800];
-  const progressSteps = [0, 20, 40, 60, 80, 100];
-  const progressLabels = ['Initialising…','DataAgent running…','RiskAgent scoring…','TrendAgent analysing…','BriefAgent writing…','DashboardAgent rendering…','Pipeline complete ✅'];
-
-  let startTime = Date.now();
-
-  // Animate clock
-  const clockInterval = setInterval(() => {
-    const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
-    document.getElementById('progress-time').textContent = elapsed + 's';
-  }, 50);
-
-  // Terminal lines
-  termLines.forEach(({t, color, text}) => {
-    setTimeout(() => {
-      const line = document.createElement('div');
-      line.style.color = color;
-      line.textContent = text;
-      terminal.appendChild(line);
-      terminal.scrollTop = terminal.scrollHeight;
-    }, t);
-  });
-
-  // Show agent cards + flip to RUNNING then PASSED
-  for (let i = 1; i <= 5; i++) {
-    const idx = i - 1;
-    setTimeout(() => {
-      const card = document.getElementById('acard-' + i);
-      card.style.display = 'block';
-      card.scrollIntoView({behavior:'smooth', block:'nearest'});
-      document.getElementById('progress-bar').style.width = progressSteps[i] + '%';
-      document.getElementById('progress-label').textContent = progressLabels[i];
-    }, agentTimes[idx]);
-
-    setTimeout(() => {
-      const card = document.getElementById('acard-' + i);
-      const badge = card.querySelector('.status-badge');
-      badge.innerHTML = '✓ PASSED';
-      badge.style.cssText = 'background:#22c55e22;color:#22c55e;border:1px solid #22c55e44;padding:3px 10px;border-radius:9999px;font-size:0.72rem;font-weight:600;';
-      card.querySelector('.output-reveal').style.opacity = '1';
-    }, agentDone[idx]);
-  }
-
-  // Complete
-  setTimeout(() => {
-    clearInterval(clockInterval);
-    document.getElementById('progress-time').textContent = '0.04s';
-    document.getElementById('progress-bar').style.width = '100%';
-    document.getElementById('progress-label').textContent = 'Pipeline complete ✅';
-    complete.style.display = 'flex';
-    btn.disabled = false;
-    btn.textContent = '↺ Run Again';
-    btn.style.opacity = '1';
-  }, 8600);
-}
-</script>
+<!-- ════════════════════════════════════════════════════
+     MODALS
+════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal-box">
+    <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
 
 <footer>
   IndiBrew Vendor Risk Monitor · Built with Claude (Cowork Mode) · 9 Structured Thinking Modes
-  · Chart.js 4.4.1 · Data: 97,001 rows across Vendors, Incidents, Employees
+  · Chart.js 4.4.1 · 5-Agent AI Pipeline · 97,001 rows processed
 </footer>
 
+<!-- ════════════════════════════════════════════════════
+     SCRIPT
+════════════════════════════════════════════════════ -->
 <script>
+'use strict';
 
-// ── Panel 1: Overview ──────────────────────────────────────────────
-const deptLabels         = ["Risk & Audit", "Compliance", "Procurement", "HR", "Operations", "IT", "Vendor Management", "Legal", "Finance", "Supply Chain"];
-const deptTotal          = [68, 58, 56, 54, 50, 48, 45, 44, 40, 37];
-const deptOpen           = [29, 24, 23, 25, 21, 26, 28, 15, 14, 21];
-const vendorScatterData  = [{"x": 43.0, "y": 10.0, "r": 20, "label": "IV0012"}, {"x": 37.0, "y": 9.2, "r": 20, "label": "IV0002"}, {"x": 33.0, "y": 9.2, "r": 17.753881999999997, "label": "IV0009"}, {"x": 21.0, "y": 9.3, "r": 20, "label": "IV0006"}, {"x": 36.0, "y": 8.0, "r": 20, "label": "IV0010"}, {"x": 43.0, "y": 7.4, "r": 20, "label": "IV0008"}, {"x": 40.0, "y": 7.6, "r": 20, "label": "IV0007"}, {"x": 30.0, "y": 8.3, "r": 20, "label": "IV0005"}, {"x": 16.0, "y": 9.0, "r": 20, "label": "IV0001"}, {"x": 18.0, "y": 7.7, "r": 7.150444, "label": "IV0011"}, {"x": 22.0, "y": 7.2, "r": 20, "label": "IV0004"}, {"x": 18.0, "y": 7.2, "r": 20, "label": "IV0003"}];
-const exposureLabels     = ["IV0004", "IV0006", "IV0010", "IV0005", "IV0002", "IV0008", "IV0007", "IV0001", "IV0012", "IV0003", "IV0009", "IV0011"];
-const exposureVals       = [485.51, 473.51, 420.08, 400.45, 370.99, 235.82, 230.88, 189.57, 161.22, 151.73, 88.77, 35.75];
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// DATA
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const DEPT_LABELS  = ["Risk & Audit","Compliance","Procurement","HR","Operations","IT","Vendor Mgmt","Legal","Finance","Supply Chain"];
+const DEPT_TOTAL   = [68,58,56,54,50,48,45,44,40,37];
+const DEPT_OPEN    = [29,24,23,25,21,26,28,15,14,21];
 
-// ── Panel 2: Risk Detail ────────────────────────────────────────────
-const empLabels          = ["IBSH00001", "IBSH00002", "IBSH00004", "IBSH00009", "IBSH00013", "IBSH00014", "IBSH00003", "IBSH00005", "IBSH00006", "IBSH00007", "IBSH00008", "IBSH00010", "IBSH00011", "IBSH00012", "IBSH00015"];
-const empIncidentVals    = [5, 5, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 4];
-const empRiskVals        = [2.9, 3.6, 3.8, 3.6, 3.2, 3.7, 4.9, 2.7, 3.9, 3.0, 4.2, 3.2, 2.9, 4.8, 2.5];
-const severityLabels     = ["CRITICAL", "HIGH", "MEDIUM", "LOW"];
-const severityVals       = [40, 112, 30, 29];
-const severityColors     = ["#7c3aed", "#ef4444", "#f97316", "#22c55e"];
-const deptExposureLabels = ["Risk & Audit", "Vendor Management", "Compliance", "IT", "HR", "Procurement", "Operations", "Supply Chain", "Legal", "Finance"];
-const deptExposureVals   = [138.18, 118.31, 113.1, 108.74, 107.05, 105.55, 101.29, 88.35, 78.24, 62.17];
+const SCATTER_RAW  = [
+  {x:43,y:10.0,r:20,label:"IV0012"},{x:37,y:9.2,r:20,label:"IV0002"},
+  {x:33,y:9.2,r:17.8,label:"IV0009"},{x:21,y:9.3,r:20,label:"IV0006"},
+  {x:36,y:8.0,r:20,label:"IV0010"},{x:43,y:7.4,r:20,label:"IV0008"},
+  {x:40,y:7.6,r:20,label:"IV0007"},{x:30,y:8.3,r:20,label:"IV0005"},
+  {x:16,y:9.0,r:20,label:"IV0001"},{x:18,y:7.7,r:7.2,label:"IV0011"},
+  {x:22,y:7.2,r:20,label:"IV0004"},{x:18,y:7.2,r:20,label:"IV0003"},
+];
 
-// ── Panel 3: 30-Day Trend ───────────────────────────────────────────
-const dailyLabels        = ["07 Apr", "08 Apr", "10 Apr", "11 Apr", "13 Apr", "14 Apr", "15 Apr", "16 Apr", "18 Apr", "19 Apr", "20 Apr", "21 Apr", "23 Apr", "24 Apr", "25 Apr", "26 Apr", "27 Apr", "28 Apr", "01 May", "02 May", "03 May", "04 May", "05 May", "06 May", "07 May"];
-const dailyVals          = [1, 3, 6, 3, 3, 3, 2, 3, 3, 3, 1, 4, 2, 1, 2, 3, 1, 3, 3, 4, 3, 1, 1, 3, 1];
-const deptMoMLabels      = ["Procurement", "Vendor Management", "Compliance", "Risk & Audit", "Legal", "HR", "Finance", "IT", "Operations", "Supply Chain"];
-const deptMoMCurr        = [8, 9, 9, 7, 6, 6, 4, 5, 4, 5];
-const deptMoMPrior       = [1, 3, 3, 3, 2, 3, 7, 2, 5, 4];
-const typeMoMLabels      = ["Approval Delay", "Payment Delay", "Policy Violation", "Contract Non-Compliance", "Training Overdue", "Data Quality", "Audit Finding", "Vendor Risk", "PO Expiry"];
-const typeMoMDeltas      = [400.0, 200.0, 166.7, 100.0, 75.0, 66.7, 40.0, 25.0, 25.0];
-const typeMoMColors      = ["#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444"];
+const EXP_LABELS   = ["IV0004","IV0006","IV0010","IV0005","IV0002","IV0008","IV0007","IV0001","IV0012","IV0003","IV0009","IV0011"];
+const EXP_VALS     = [485.51,473.51,420.08,400.45,370.99,235.82,230.88,189.57,161.22,151.73,88.77,35.75];
 
+const EMP_LABELS   = ["IBSH00001","IBSH00002","IBSH00004","IBSH00009","IBSH00013","IBSH00014","IBSH00003","IBSH00005","IBSH00006","IBSH00007","IBSH00008","IBSH00010","IBSH00011","IBSH00012","IBSH00015"];
+const EMP_INC      = [5,5,5,5,5,5,4,4,4,4,4,4,4,4,4];
+const EMP_RISK     = [2.9,3.6,3.8,3.6,3.2,3.7,4.9,2.7,3.9,3.0,4.2,3.2,2.9,4.8,2.5];
 
-// ── Utilities ────────────────────────────────────────────────────────
+const SEV_LABELS   = ["CRITICAL","HIGH","MEDIUM","LOW"];
+const SEV_VALS     = [40,112,30,29];
+const SEV_FULL     = [40,112,30,44]; // including closed
+const SEV_COLORS   = ["#7c3aed","#ef4444","#f97316","#22c55e"];
+
+const DEPT_EXP_L   = ["Risk & Audit","Vendor Mgmt","Compliance","IT","HR","Procurement","Operations","Supply Chain","Legal","Finance"];
+const DEPT_EXP_V   = [138.18,118.31,113.1,108.74,107.05,105.55,101.29,88.35,78.24,62.17];
+
+const DAILY_ALL_L  = ["07 Apr","08 Apr","10 Apr","11 Apr","13 Apr","14 Apr","15 Apr","16 Apr","18 Apr","19 Apr","20 Apr","21 Apr","23 Apr","24 Apr","25 Apr","26 Apr","27 Apr","28 Apr","01 May","02 May","03 May","04 May","05 May","06 May","07 May"];
+const DAILY_ALL_V  = [1,3,6,3,3,3,2,3,3,3,1,4,2,1,2,3,1,3,3,4,3,1,1,3,1];
+
+const MOM_DEPT_L   = ["Procurement","Vendor Mgmt","Compliance","Risk & Audit","Legal","HR","Finance","IT","Operations","Supply Chain"];
+const MOM_CURR     = [8,9,9,7,6,6,4,5,4,5];
+const MOM_PRIOR    = [1,3,3,3,2,3,7,2,5,4];
+
+const MOM_TYPE_L   = ["Approval Delay","Payment Delay","Policy Violation","Contract Non-Compl.","Training Overdue","Data Quality","Audit Finding","Vendor Risk","PO Expiry"];
+const MOM_DELTAS   = [400,200,166.7,100,75,66.7,40,25,25];
+
+// Full vendor dataset (12 HIGH-risk + 8 others for demo)
+const VENDORS = [
+  {id:"IV0001",cat:"IT Services",risk:"HIGH",score:9.0,delay:16,exp:189.57,open:18,dept:"IT"},
+  {id:"IV0002",cat:"Compliance",risk:"HIGH",score:9.2,delay:37,exp:370.99,open:22,dept:"Compliance"},
+  {id:"IV0003",cat:"Legal",risk:"HIGH",score:7.2,delay:18,exp:151.73,open:12,dept:"Legal"},
+  {id:"IV0004",cat:"Finance",risk:"HIGH",score:7.2,delay:22,exp:485.51,open:14,dept:"Finance"},
+  {id:"IV0005",cat:"Operations",risk:"HIGH",score:8.3,delay:30,exp:400.45,open:20,dept:"Operations"},
+  {id:"IV0006",cat:"Procurement",risk:"HIGH",score:9.3,delay:21,exp:473.51,open:24,dept:"Procurement"},
+  {id:"IV0007",cat:"Supply Chain",risk:"HIGH",score:7.6,delay:40,exp:230.88,open:16,dept:"Supply Chain"},
+  {id:"IV0008",cat:"Vendor Mgmt",risk:"HIGH",score:7.4,delay:43,exp:235.82,open:18,dept:"Vendor Mgmt"},
+  {id:"IV0009",cat:"Risk & Audit",risk:"HIGH",score:9.2,delay:33,exp:88.77,open:10,dept:"Risk & Audit"},
+  {id:"IV0010",cat:"HR",risk:"HIGH",score:8.0,delay:36,exp:420.08,open:19,dept:"HR"},
+  {id:"IV0011",cat:"IT Services",risk:"HIGH",score:7.7,delay:18,exp:35.75,open:8,dept:"IT"},
+  {id:"IV0012",cat:"Procurement",risk:"HIGH",score:10.0,delay:43,exp:161.22,open:21,dept:"Procurement"},
+  {id:"IV0013",cat:"Finance",risk:"MEDIUM",score:5.8,delay:8,exp:95.30,open:5,dept:"Finance"},
+  {id:"IV0014",cat:"IT Services",risk:"MEDIUM",score:6.1,delay:10,exp:112.40,open:7,dept:"IT"},
+  {id:"IV0015",cat:"Operations",risk:"MEDIUM",score:4.9,delay:5,exp:78.60,open:4,dept:"Operations"},
+  {id:"IV0016",cat:"Legal",risk:"LOW",score:3.2,delay:2,exp:45.20,open:2,dept:"Legal"},
+  {id:"IV0017",cat:"HR",risk:"LOW",score:2.8,delay:1,exp:32.10,open:1,dept:"HR"},
+  {id:"IV0018",cat:"Compliance",risk:"MEDIUM",score:5.5,delay:7,exp:88.90,open:6,dept:"Compliance"},
+  {id:"IV0019",cat:"Supply Chain",risk:"LOW",score:3.8,delay:3,exp:55.70,open:3,dept:"Supply Chain"},
+  {id:"IV0020",cat:"Vendor Mgmt",risk:"MEDIUM",score:6.4,delay:11,exp:140.20,open:9,dept:"Vendor Mgmt"},
+];
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// STATE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let deptView = 'all';
+let exposureSortAsc = false;
+let empLayerVisible = true;
+let severityFilter = 'all';
+let windowDays = 30;
+let showAnnotations = true;
+let deltaColors = true;
+let sortCol = -1, sortDir = 1;
+let currentThreshold = 7.0;
+let chartRefs = {};
+
+const GRID  = 'rgba(255,255,255,0.06)';
+const TICK  = '#94a3b8';
+
+function baseOpt(horiz = false) {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: TICK, font: { size: 11 } } },
+      tooltip: { backgroundColor: '#1a1d2e', borderColor: '#2d3150', borderWidth: 1,
+                 titleColor: '#e2e8f0', bodyColor: '#94a3b8' },
+    },
+    scales: horiz ? {
+      x: { grid: { color: GRID }, ticks: { color: TICK } },
+      y: { grid: { display: false }, ticks: { color: TICK, font: { size: 11 } } },
+    } : {
+      x: { grid: { display: false }, ticks: { color: TICK, maxRotation: 45 } },
+      y: { grid: { color: GRID },    ticks: { color: TICK } },
+    },
+  };
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// TAB SWITCHING
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function showPanel(id, el) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('panel-' + id).classList.add('active');
-  el.classList.add('active');
+  if (el) el.classList.add('active');
+  if (id === 'vendors') renderVendorTable();
 }
 
-const GRID_COLOR  = 'rgba(255,255,255,0.06)';
-const TEXT_COLOR  = '#94a3b8';
-const baseOptions = (horizontal = false) => ({
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: { labels: { color: TEXT_COLOR, font: { size: 11 } } },
-    tooltip: { backgroundColor: '#1a1d2e', borderColor: '#2d3150', borderWidth: 1,
-                titleColor: '#e2e8f0', bodyColor: '#94a3b8' },
-  },
-  scales: horizontal ? {
-    x: { grid: { color: GRID_COLOR }, ticks: { color: TEXT_COLOR } },
-    y: { grid: { display: false }, ticks: { color: TEXT_COLOR, font: { size: 11 } } },
-  } : {
-    x: { grid: { display: false }, ticks: { color: TEXT_COLOR, maxRotation: 45 } },
-    y: { grid: { color: GRID_COLOR }, ticks: { color: TEXT_COLOR } },
-  },
-});
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// OVERVIEW CONTROLS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function setDeptView(v) {
+  deptView = v;
+  document.getElementById('view-all').classList.toggle('active', v === 'all');
+  document.getElementById('view-top5').classList.toggle('active', v === 'top5');
+  const n = v === 'top5' ? 5 : DEPT_LABELS.length;
+  const c = chartRefs.dept;
+  c.data.labels = DEPT_LABELS.slice(0, n);
+  c.data.datasets[0].data = DEPT_TOTAL.slice(0, n);
+  c.data.datasets[1].data = DEPT_OPEN.slice(0, n);
+  document.getElementById('dept-count-tag').textContent = n + ' depts';
+  c.update();
+}
 
-// ── Chart 1: Dept incidents bar ───────────────────────────────────────
-new Chart(document.getElementById('deptChart'), {
-  type: 'bar',
-  data: {
-    labels: deptLabels,
-    datasets: [
-      { label: 'Total', data: deptTotal,
-         backgroundColor: 'rgba(99,102,241,0.6)', borderColor: '#6366f1', borderWidth: 1 },
-      { label: 'Open',  data: deptOpen,
-         backgroundColor: 'rgba(239,68,68,0.6)',  borderColor: '#ef4444', borderWidth: 1 },
-    ],
-  },
-  options: baseOptions(),
-});
+function toggleDeptChartType(t) {
+  document.getElementById('ct-bar').classList.toggle('active', t === 'bar');
+  document.getElementById('ct-line').classList.toggle('active', t === 'line');
+  chartRefs.dept.data.datasets.forEach(d => d.type = t);
+  chartRefs.dept.config.type = t;
+  chartRefs.dept.update();
+}
 
-// ── Chart 2: Vendor scatter ──────────────────────────────────────────
-new Chart(document.getElementById('scatterChart'), {
-  type: 'bubble',
-  data: {
-    datasets: [{
-      label: 'Vendor',
-      data: vendorScatterData,
-      backgroundColor: 'rgba(239,68,68,0.55)',
-      borderColor: '#ef4444',
-      borderWidth: 1,
-    }],
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: '#1a1d2e', borderColor: '#2d3150', borderWidth: 1,
-        titleColor: '#e2e8f0',      bodyColor: '#94a3b8',
-        callbacks: {
-          label: ctx => {
-            const d = ctx.raw;
-            return `${d.label} | Delay: ${d.x}d | Score: ${d.y}`;
+function updateThreshold(v) {
+  currentThreshold = parseFloat(v);
+  document.getElementById('thresh-val').textContent = parseFloat(v).toFixed(1);
+  const highCount = SCATTER_RAW.filter(d => d.y >= currentThreshold).length;
+  const highExp = VENDORS.filter(v2 => v2.score >= currentThreshold)
+    .reduce((s, v2) => s + v2.exp, 0);
+  // Update KPI cards dynamically
+  document.querySelector('#kpi-strip .kpi-card:nth-child(2) .kpi-value').textContent = highCount;
+  document.querySelector('#kpi-strip .kpi-card:nth-child(1) .kpi-value').textContent =
+    '₹' + (highExp / 100).toFixed(1) + ' Cr';
+  // Recolor scatter
+  const c = chartRefs.scatter;
+  c.data.datasets[0].backgroundColor = SCATTER_RAW.map(d =>
+    d.y >= currentThreshold ? 'rgba(239,68,68,0.7)' : 'rgba(99,102,241,0.5)');
+  c.options.scales.y.min = Math.max(6, currentThreshold - 0.5);
+  c.update();
+}
+
+function sortExposure() {
+  exposureSortAsc = !exposureSortAsc;
+  const pairs = EXP_LABELS.map((l, i) => [l, EXP_VALS[i]]);
+  pairs.sort((a, b) => exposureSortAsc ? a[1] - b[1] : b[1] - a[1]);
+  const c = chartRefs.exposure;
+  c.data.labels = pairs.map(p => p[0]);
+  c.data.datasets[0].data = pairs.map(p => p[1]);
+  c.update();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RISK DETAIL CONTROLS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function setSeverity(f) {
+  severityFilter = f;
+  ['all','CRITICAL','HIGH','MEDIUM'].forEach(s =>
+    document.getElementById('sev-' + s.toLowerCase()).classList.toggle('active', s === f));
+  const c = chartRefs.severity;
+  let vals, labels, colors;
+  if (f === 'all') {
+    vals = SEV_VALS; labels = SEV_LABELS; colors = SEV_COLORS;
+  } else {
+    const idx = SEV_LABELS.indexOf(f);
+    vals = [SEV_VALS[idx]]; labels = [f]; colors = [SEV_COLORS[idx]];
+  }
+  c.data.labels = labels;
+  c.data.datasets[0].data = vals;
+  c.data.datasets[0].backgroundColor = colors;
+  document.getElementById('sev-total-tag').textContent =
+    vals.reduce((a, b) => a + b, 0) + ' open';
+  c.update();
+}
+
+function toggleEmpLayer() {
+  empLayerVisible = !empLayerVisible;
+  document.getElementById('emp-show-risk').classList.toggle('active', empLayerVisible);
+  chartRefs.emp.data.datasets[1].hidden = !empLayerVisible;
+  chartRefs.emp.update();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// TREND CONTROLS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function setWindow(d) {
+  windowDays = d;
+  ['7','14','30'].forEach(n =>
+    document.getElementById('w-' + n).classList.toggle('active', parseInt(n) === d));
+  document.getElementById('window-tag').textContent = 'Last ' + d + ' days';
+  const n = d === 7 ? 7 : d === 14 ? 14 : DAILY_ALL_L.length;
+  const c = chartRefs.daily;
+  c.data.labels = DAILY_ALL_L.slice(-n);
+  c.data.datasets[0].data = DAILY_ALL_V.slice(-n);
+  c.update();
+}
+
+function toggleAnnotations() {
+  showAnnotations = !showAnnotations;
+  document.getElementById('ann-toggle').textContent =
+    showAnnotations ? 'Ghost Flags ON' : 'Ghost Flags OFF';
+  document.getElementById('ann-toggle').classList.toggle('active', showAnnotations);
+  const c = chartRefs.daily;
+  c.data.datasets[1 ].hidden = !showAnnotations;
+  c.update();
+}
+
+function toggleDeltaColors() {
+  deltaColors = !deltaColors;
+  document.getElementById('delta-color').classList.toggle('active', deltaColors);
+  const c = chartRefs.typeMoM;
+  if (deltaColors) {
+    c.data.datasets[0].backgroundColor = MOM_DELTAS.map(d => d > 0 ? '#ef4444' : '#22c55e');
+  } else {
+    c.data.datasets[0].backgroundColor = '#6366f1';
+  }
+  c.update();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// CHARTS INIT
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function initCharts() {
+
+  // Chart 1 — Dept incidents
+  chartRefs.dept = new Chart(document.getElementById('deptChart'), {
+    type: 'bar',
+    data: {
+      labels: DEPT_LABELS,
+      datasets: [
+        { label:'Total',   data:[...DEPT_TOTAL], backgroundColor:'rgba(99,102,241,0.6)',  borderColor:'#6366f1', borderWidth:1 },
+        { label:'Open',    data:[...DEPT_OPEN],  backgroundColor:'rgba(239,68,68,0.6)',   borderColor:'#ef4444', borderWidth:1 },
+      ],
+    },
+    options: {
+      ...baseOpt(),
+      onClick(e, els) {
+        if (!els.length) return;
+        const i = els[0].index;
+        openDeptModal(DEPT_LABELS[i], i);
+      },
+    },
+  });
+
+  // Chart 2 — Vendor scatter
+  chartRefs.scatter = new Chart(document.getElementById('scatterChart'), {
+    type: 'bubble',
+    data: {
+      datasets: [{
+        label:'Vendor',
+        data: SCATTER_RAW.map(d => ({ ...d })),
+        backgroundColor: SCATTER_RAW.map(d => d.y >= 7 ? 'rgba(239,68,68,0.65)' : 'rgba(99,102,241,0.5)'),
+        borderColor:'#ef4444', borderWidth:1,
+      }],
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: {
+        legend: { display:false },
+        tooltip: {
+          backgroundColor:'#1a1d2e', borderColor:'#2d3150', borderWidth:1,
+          titleColor:'#e2e8f0', bodyColor:'#94a3b8',
+          callbacks: { label: ctx => `${ctx.raw.label} | Delay: ${ctx.raw.x}d | Score: ${ctx.raw.y}` },
+        },
+      },
+      scales: {
+        x: { title:{display:true,text:'Payment Delay (days)',color:TICK}, grid:{color:GRID}, ticks:{color:TICK} },
+        y: { title:{display:true,text:'Risk Score',color:TICK},           grid:{color:GRID}, ticks:{color:TICK}, min:7, max:10.2 },
+      },
+      onClick(e, els) {
+        if (!els.length) return;
+        const d = SCATTER_RAW[els[0].index];
+        openVendorModal(d.label);
+      },
+    },
+  });
+
+  // Chart 3 — Exposure bar
+  chartRefs.exposure = new Chart(document.getElementById('exposureChart'), {
+    type:'bar',
+    data: {
+      labels: [...EXP_LABELS],
+      datasets: [{ label:'Contract Exposure (₹L)', data:[...EXP_VALS],
+        backgroundColor:'rgba(249,115,22,0.65)', borderColor:'#f97316', borderWidth:1 }],
+    },
+    options: {
+      ...baseOpt(true), indexAxis:'y',
+      onClick(e, els) {
+        if (!els.length) return;
+        openVendorModal(EXP_LABELS[els[0].index]);
+      },
+    },
+  });
+
+  // Chart 4 — Employee combo
+  chartRefs.emp = new Chart(document.getElementById('empChart'), {
+    type:'bar',
+    data: {
+      labels: EMP_LABELS,
+      datasets: [
+        { label:'Compliance Incidents', data:EMP_INC,  type:'bar',
+          backgroundColor:'rgba(239,68,68,0.6)', borderColor:'#ef4444', borderWidth:1, yAxisID:'y' },
+        { label:'Risk Score', data:EMP_RISK, type:'line',
+          borderColor:'#f97316', backgroundColor:'rgba(249,115,22,0.1)',
+          tension:0.3, pointRadius:4, yAxisID:'y1' },
+      ],
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: {
+        legend:{ labels:{ color:TICK } },
+        tooltip:{ backgroundColor:'#1a1d2e', titleColor:'#e2e8f0', bodyColor:'#94a3b8' },
+      },
+      scales: {
+        x:  { grid:{display:false}, ticks:{color:TICK,maxRotation:60,font:{size:9}} },
+        y:  { grid:{color:GRID}, ticks:{color:TICK}, title:{display:true,text:'Incidents',color:TICK} },
+        y1: { position:'right', grid:{display:false}, ticks:{color:'#f97316'},
+              title:{display:true,text:'Risk Score',color:'#f97316'} },
+      },
+      onClick(e, els) {
+        if (!els.length) return;
+        openEmpModal(EMP_LABELS[els[0].index], els[0].index);
+      },
+    },
+  });
+
+  // Chart 5 — Severity doughnut
+  chartRefs.severity = new Chart(document.getElementById('severityChart'), {
+    type:'doughnut',
+    data: {
+      labels: SEV_LABELS,
+      datasets: [{ data:SEV_VALS, backgroundColor:SEV_COLORS, borderColor:'#0f1117', borderWidth:3 }],
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: {
+        legend:{ position:'right', labels:{color:TICK, padding:14} },
+        tooltip:{ backgroundColor:'#1a1d2e', titleColor:'#e2e8f0', bodyColor:'#94a3b8',
+          callbacks:{ label: ctx => `${ctx.label}: ${ctx.raw} (${(ctx.raw/SEV_VALS.reduce((a,b)=>a+b,0)*100).toFixed(1)}%)` },
+        },
+      },
+      onClick(e, els) {
+        if (!els.length) return;
+        setSeverity(SEV_LABELS[els[0].index]);
+      },
+    },
+  });
+
+  // Chart 6 — Dept exposure
+  chartRefs.deptExp = new Chart(document.getElementById('deptExposureChart'), {
+    type:'bar',
+    data: {
+      labels: DEPT_EXP_L,
+      datasets: [{ label:'Open Exposure (₹L)', data:DEPT_EXP_V,
+        backgroundColor:'rgba(139,92,246,0.65)', borderColor:'#8b5cf6', borderWidth:1 }],
+    },
+    options: {
+      ...baseOpt(true), indexAxis:'y',
+      onClick(e, els) {
+        if (!els.length) return;
+        openDeptModal(DEPT_EXP_L[els[0].index], DEPT_EXP_L.indexOf(DEPT_EXP_L[els[0].index]));
+      },
+    },
+  });
+
+  // Ghost flag points (anomaly annotations as a scatter overlay)
+  const ghostPoints = [
+    {x:'13 Apr', y:3, label:'Ghost: Procurement spike'},
+    {x:'21 Apr', y:4, label:'Ghost: IT+Finance cluster'},
+    {x:'02 May', y:4, label:'Ghost: MoM +52% starts'},
+  ];
+
+  // Chart 7 — Daily trend
+  chartRefs.daily = new Chart(document.getElementById('dailyChart'), {
+    type:'line',
+    data: {
+      labels: DAILY_ALL_L,
+      datasets: [
+        { label:'Daily Incidents', data:DAILY_ALL_V, borderColor:'#6366f1',
+          backgroundColor:'rgba(99,102,241,0.12)', tension:0.4, fill:true,
+          pointRadius:3, pointHoverRadius:6 },
+        { label:'🚩 Ghost Flag', type:'scatter',
+          data: ghostPoints.map(p => ({ x: DAILY_ALL_L.indexOf(p.x), y: p.y + 0.5, note: p.label })),
+          backgroundColor:'#ef4444', pointRadius:8, pointStyle:'triangle', showLine:false,
+        },
+      ],
+    },
+    options: {
+      ...baseOpt(),
+      plugins: {
+        ...baseOpt().plugins,
+        tooltip: {
+          ...baseOpt().plugins.tooltip,
+          callbacks: {
+            label: ctx => ctx.dataset.label === '🚩 Ghost Flag'
+              ? ctx.raw.note
+              : `${ctx.dataset.label}: ${ctx.raw}`,
           },
         },
       },
     },
-    scales: {
-      x: { title: { display: true, text: 'Payment Delay (days)', color: TEXT_COLOR },
-            grid: { color: GRID_COLOR }, ticks: { color: TEXT_COLOR } },
-      y: { title: { display: true, text: 'Risk Score',           color: TEXT_COLOR },
-            grid: { color: GRID_COLOR }, ticks: { color: TEXT_COLOR },
-            min: 7, max: 10 },
+  });
+
+  // Chart 8 — Dept MoM
+  chartRefs.deptMoM = new Chart(document.getElementById('deptMoMChart'), {
+    type:'bar',
+    data: {
+      labels: MOM_DEPT_L,
+      datasets: [
+        { label:'Current Month', data:MOM_CURR,  backgroundColor:'rgba(239,68,68,0.65)', borderColor:'#ef4444', borderWidth:1 },
+        { label:'Prior Month',   data:MOM_PRIOR, backgroundColor:'rgba(148,163,184,0.35)', borderColor:'#94a3b8', borderWidth:1 },
+      ],
     },
-  },
-});
-
-// ── Chart 3: Exposure horizontal bar ────────────────────────────────
-new Chart(document.getElementById('exposureChart'), {
-  type: 'bar',
-  data: {
-    labels: exposureLabels,
-    datasets: [{
-      label: 'Contract Exposure (₹ Lakh)',
-      data: exposureVals,
-      backgroundColor: 'rgba(249,115,22,0.65)',
-      borderColor: '#f97316',
-      borderWidth: 1,
-    }],
-  },
-  options: { ...baseOptions(true), indexAxis: 'y' },
-});
-
-// ── Chart 4: Employee risk bar+line ──────────────────────────────────
-new Chart(document.getElementById('empChart'), {
-  type: 'bar',
-  data: {
-    labels: empLabels,
-    datasets: [
-      { label: 'Compliance Incidents', data: empIncidentVals, type: 'bar',
-         backgroundColor: 'rgba(239,68,68,0.6)', borderColor: '#ef4444', borderWidth: 1,
-         yAxisID: 'y' },
-      { label: 'Composite Risk Score', data: empRiskVals, type: 'line',
-         borderColor: '#f97316', backgroundColor: 'rgba(249,115,22,0.1)',
-         tension: 0.3, pointRadius: 4, yAxisID: 'y1' },
-    ],
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: {
-      legend: { labels: { color: TEXT_COLOR } },
-      tooltip: { backgroundColor: '#1a1d2e', titleColor: '#e2e8f0', bodyColor: '#94a3b8' },
+    options: {
+      ...baseOpt(),
+      onClick(e, els) {
+        if (!els.length) return;
+        openDeptModal(MOM_DEPT_L[els[0].index], els[0].index);
+      },
     },
-    scales: {
-      x:  { grid: { display: false },  ticks: { color: TEXT_COLOR, maxRotation: 60, font: { size: 10 } } },
-      y:  { grid: { color: GRID_COLOR }, ticks: { color: TEXT_COLOR },
-             title: { display: true, text: 'Incidents', color: TEXT_COLOR } },
-      y1: { position: 'right', grid: { display: false }, ticks: { color: '#f97316' },
-             title: { display: true, text: 'Risk Score', color: '#f97316' } },
+  });
+
+  // Chart 9 — Type MoM
+  chartRefs.typeMoM = new Chart(document.getElementById('typeMoMChart'), {
+    type:'bar',
+    data: {
+      labels: MOM_TYPE_L,
+      datasets: [{ label:'MoM Change (%)', data:MOM_DELTAS,
+        backgroundColor: MOM_DELTAS.map(d => d > 0 ? '#ef4444' : '#22c55e'), borderWidth:0 }],
     },
-  },
-});
+    options: { ...baseOpt(true), indexAxis:'y' },
+  });
+}
 
-// ── Chart 5: Severity doughnut ───────────────────────────────────────
-new Chart(document.getElementById('severityChart'), {
-  type: 'doughnut',
-  data: {
-    labels: severityLabels,
-    datasets: [{
-      data: severityVals,
-      backgroundColor: severityColors,
-      borderColor: '#0f1117',
-      borderWidth: 3,
-    }],
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: {
-      legend: { position: 'right', labels: { color: TEXT_COLOR, padding: 16 } },
-      tooltip: { backgroundColor: '#1a1d2e', titleColor: '#e2e8f0', bodyColor: '#94a3b8' },
-    },
-  },
-});
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// VENDOR TABLE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let _filteredVendors = [...VENDORS];
 
-// ── Chart 6: Dept open exposure horizontal bar ───────────────────────
-new Chart(document.getElementById('deptExposureChart'), {
-  type: 'bar',
-  data: {
-    labels: deptExposureLabels,
-    datasets: [{
-      label: 'Open Exposure (₹ Lakh)',
-      data: deptExposureVals,
-      backgroundColor: 'rgba(139,92,246,0.65)',
-      borderColor: '#8b5cf6',
-      borderWidth: 1,
-    }],
-  },
-  options: { ...baseOptions(true), indexAxis: 'y' },
-});
+function chipColor(risk) {
+  return risk === 'HIGH' ? 'chip-red' : risk === 'MEDIUM' ? 'chip-orange' : 'chip-green';
+}
 
-// ── Chart 7: Daily trend line ────────────────────────────────────────
-new Chart(document.getElementById('dailyChart'), {
-  type: 'line',
-  data: {
-    labels: dailyLabels,
-    datasets: [{
-      label: 'Daily Incidents',
-      data: dailyVals,
-      borderColor: '#6366f1',
-      backgroundColor: 'rgba(99,102,241,0.12)',
-      tension: 0.4,
-      fill: true,
-      pointRadius: 3,
-      pointHoverRadius: 6,
-    }],
-  },
-  options: baseOptions(),
-});
+function renderVendorTable() {
+  const q     = (document.getElementById('vendor-search').value || '').toLowerCase();
+  const rf    = document.getElementById('risk-filter').value;
+  const df    = document.getElementById('dept-filter').value;
+  _filteredVendors = VENDORS.filter(v =>
+    (rf === 'all' || v.risk === rf) &&
+    (df === 'all' || v.dept === df) &&
+    (v.id.toLowerCase().includes(q) || v.cat.toLowerCase().includes(q) || v.dept.toLowerCase().includes(q))
+  );
+  if (sortCol >= 0) {
+    const keys = ['id','cat','risk','score','delay','exp','open','dept'];
+    _filteredVendors.sort((a, b) => {
+      const av = a[keys[sortCol]], bv = b[keys[sortCol]];
+      return typeof av === 'number' ? (av - bv) * sortDir : av.localeCompare(bv) * sortDir;
+    });
+  }
+  document.getElementById('vendor-count').textContent = _filteredVendors.length + ' of ' + VENDORS.length + ' vendors';
+  const maxExp = Math.max(...VENDORS.map(v => v.exp));
+  const tbody = document.getElementById('vendor-tbody');
+  tbody.innerHTML = _filteredVendors.map(v => `
+    <tr onclick="openVendorModal('${v.id}')">
+      <td><strong>${v.id}</strong></td>
+      <td>${v.cat}</td>
+      <td><span class="chip ${chipColor(v.risk)}">${v.risk}</span></td>
+      <td>${v.score.toFixed(1)}</td>
+      <td>${v.delay}d</td>
+      <td>
+        <div class="bar-cell">
+          <div class="mini-bar" style="width:${Math.round(v.exp/maxExp*80)}px;background:${v.risk==='HIGH'?'#ef4444':v.risk==='MEDIUM'?'#f97316':'#22c55e'}"></div>
+          ₹${v.exp.toFixed(0)}L
+        </div>
+      </td>
+      <td>${v.open}</td>
+      <td>${v.dept}</td>
+      <td><button class="btn-sm" onclick="event.stopPropagation();openVendorModal('${v.id}')">Detail →</button></td>
+    </tr>`).join('');
+}
 
-// ── Chart 8: Dept MoM grouped bar ────────────────────────────────────
-new Chart(document.getElementById('deptMoMChart'), {
-  type: 'bar',
-  data: {
-    labels: deptMoMLabels,
-    datasets: [
-      { label: 'Current Month',  data: deptMoMCurr,
-         backgroundColor: 'rgba(239,68,68,0.65)',  borderColor: '#ef4444', borderWidth: 1 },
-      { label: 'Prior Month',    data: deptMoMPrior,
-         backgroundColor: 'rgba(148,163,184,0.35)', borderColor: '#94a3b8', borderWidth: 1 },
-    ],
-  },
-  options: baseOptions(),
-});
+function filterVendors() { renderVendorTable(); }
 
-// ── Chart 9: Type MoM horizontal bar ────────────────────────────────
-new Chart(document.getElementById('typeMoMChart'), {
-  type: 'bar',
-  data: {
-    labels: typeMoMLabels,
-    datasets: [{
-      label: 'MoM Change (%)',
-      data: typeMoMDeltas,
-      backgroundColor: typeMoMColors,
-      borderWidth: 0,
-    }],
-  },
-  options: { ...baseOptions(true), indexAxis: 'y' },
-});
+function sortTable(col) {
+  if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = 1; }
+  document.querySelectorAll('#vendor-table th').forEach((th, i) => {
+    th.classList.toggle('sorted', i === col);
+    const arr = th.querySelector('.sort-arrow');
+    if (arr) arr.textContent = i === col ? (sortDir === 1 ? '↓' : '↑') : '↕';
+  });
+  renderVendorTable();
+}
+
+function exportCSV() {
+  const hdr = ['Vendor ID','Category','Risk Level','Risk Score','Pay Delay (d)','Exposure (₹L)','Open Incidents','Department'];
+  const rows = _filteredVendors.map(v => [v.id,v.cat,v.risk,v.score,v.delay,v.exp,v.open,v.dept].join(','));
+  const blob = new Blob([hdr.join(',') + '\n' + rows.join('\n')], { type:'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'IndiBrew_Vendor_Risk_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// MODALS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function openModal(html) {
+  document.getElementById('modal-content').innerHTML = html;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModalDirect();
+}
+function closeModalDirect() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+function openVendorModal(id) {
+  const v = VENDORS.find(x => x.id === id);
+  if (!v) return;
+  const pct = (v.open / (v.open + Math.round(v.open * 0.8)) * 100).toFixed(0);
+  openModal(`
+    <h3>${v.id} — ${v.cat}</h3>
+    <p class="sub">${v.dept} · Last reviewed: 2026-04-28</p>
+    <div class="modal-grid">
+      <div class="modal-kpi"><div class="val" style="color:${v.risk==='HIGH'?'#ef4444':v.risk==='MEDIUM'?'#f97316':'#22c55e'}">${v.risk}</div><div class="lbl">Risk Level</div></div>
+      <div class="modal-kpi"><div class="val" style="color:#f97316">${v.score.toFixed(1)}</div><div class="lbl">Risk Score</div></div>
+      <div class="modal-kpi"><div class="val" style="color:#f59e0b">${v.delay}d</div><div class="lbl">Avg Payment Delay</div></div>
+      <div class="modal-kpi"><div class="val" style="color:#ef4444">₹${v.exp.toFixed(0)}L</div><div class="lbl">Contract Exposure</div></div>
+      <div class="modal-kpi"><div class="val" style="color:#8b5cf6">${v.open}</div><div class="lbl">Open Incidents</div></div>
+      <div class="modal-kpi"><div class="val" style="color:#06b6d4">${pct}%</div><div class="lbl">Unresolved Rate</div></div>
+    </div>
+    <div style="font-size:0.82rem;font-weight:600;color:var(--text);margin-bottom:10px;">📋 Recommended Actions</div>
+    <ul class="action-list">
+      ${v.risk === 'HIGH' ? `
+        <li>Escalate to Procurement Head within 48 hrs — contract review required</li>
+        <li>Freeze new POs pending payment delay resolution (>${v.delay}d breach)</li>
+        <li>Assign dedicated relationship manager for daily incident tracking</li>
+        <li>Trigger SLA penalty clause — contract section 8.3</li>
+      ` : v.risk === 'MEDIUM' ? `
+        <li>Schedule monthly SLA review with vendor account team</li>
+        <li>Issue formal notice if delay exceeds 15 days in next cycle</li>
+        <li>Flag for Q3 contract renewal renegotiation</li>
+      ` : `
+        <li>Maintain quarterly review cadence</li>
+        <li>No immediate escalation required</li>
+      `}
+    </ul>
+    <div style="font-size:0.72rem;color:var(--muted);margin-top:16px;">Data as of 2026-05-06 · Source: IndiBrew Vendor Risk Monitor v1.0</div>
+  `);
+}
+
+function openDeptModal(dept, idx) {
+  const dTotal = DEPT_TOTAL[idx] || DEPT_TOTAL[0];
+  const dOpen  = DEPT_OPEN[idx]  || DEPT_OPEN[0];
+  const dExp   = DEPT_EXP_V[DEPT_EXP_L.indexOf(dept)] || 0;
+  const momC   = MOM_CURR[MOM_DEPT_L.indexOf(dept)] || 0;
+  const momP   = MOM_PRIOR[MOM_DEPT_L.indexOf(dept)] || 0;
+  const chg    = momP > 0 ? ((momC - momP) / momP * 100).toFixed(0) : 'N/A';
+  openModal(`
+    <h3>${dept} — Department Risk Brief</h3>
+    <p class="sub">IndiBrew GCC · Hyderabad · Snapshot: 2026-05-06</p>
+    <div class="modal-grid">
+      <div class="modal-kpi"><div class="val" style="color:#f59e0b">${dTotal}</div><div class="lbl">Total Incidents</div></div>
+      <div class="modal-kpi"><div class="val" style="color:#ef4444">${dOpen}</div><div class="lbl">Open Incidents</div></div>
+      <div class="modal-kpi"><div class="val" style="color:#8b5cf6">${dOpen > 0 ? (dOpen/dTotal*100).toFixed(0) : 0}%</div><div class="lbl">Unresolved Rate</div></div>
+      <div class="modal-kpi"><div class="val" style="color:#f97316">₹${dExp.toFixed(0)}L</div><div class="lbl">Open Exposure</div></div>
+      <div class="modal-kpi"><div class="val" style="color:${parseInt(chg)>0?'#ef4444':'#22c55e'}">${chg}%</div><div class="lbl">MoM Change</div></div>
+      <div class="modal-kpi"><div class="val" style="color:#06b6d4">${momC}</div><div class="lbl">This Month</div></div>
+    </div>
+    <div style="font-size:0.82rem;font-weight:600;color:var(--text);margin-bottom:10px;">📋 Department Actions</div>
+    <ul class="action-list">
+      <li>HOD to review all ${dOpen} open incidents by 2026-05-09 and assign owners</li>
+      <li>Submit root-cause analysis for top 3 incident types to Risk & Audit by 2026-05-12</li>
+      ${dExp > 100 ? '<li>Finance to review ₹' + dExp.toFixed(0) + 'L open exposure — escalate items >₹50L individually</li>' : ''}
+      ${parseInt(chg) > 50 ? '<li>⚠️ MoM spike >' + chg + '% — trigger OODA rapid response protocol</li>' : ''}
+    </ul>
+  `);
+}
+
+function openEmpModal(empId, idx) {
+  const inc  = EMP_INC[idx];
+  const risk = EMP_RISK[idx];
+  openModal(`
+    <h3>${empId}</h3>
+    <p class="sub">Compliance Risk Profile · IndiBrew GCC</p>
+    <div class="modal-grid">
+      <div class="modal-kpi"><div class="val" style="color:#ef4444">${inc}</div><div class="lbl">Compliance Incidents</div></div>
+      <div class="modal-kpi"><div class="val" style="color:#f97316">${risk.toFixed(1)}</div><div class="lbl">Composite Risk Score</div></div>
+      <div class="modal-kpi"><div class="val" style="color:#f59e0b">${inc >= 5 ? 'CRITICAL' : inc >= 4 ? 'HIGH' : 'MEDIUM'}</div><div class="lbl">Alert Level</div></div>
+      <div class="modal-kpi"><div class="val" style="color:#06b6d4">Completed</div><div class="lbl">Training Status</div></div>
+    </div>
+    <div style="background:rgba(239,68,68,.08);border-left:3px solid #ef4444;border-radius:0 8px 8px 0;padding:10px 14px;font-size:0.8rem;color:var(--muted);margin-bottom:14px;">
+      <strong style="color:var(--text);">🧠 Ghost Mode:</strong>
+      This employee has completed all mandatory training yet accumulates the maximum number of incidents.
+      This is a behavioural pattern, not a knowledge gap — escalate to HR Business Partner.
+    </div>
+    <div style="font-size:0.82rem;font-weight:600;color:var(--text);margin-bottom:10px;">📋 Actions</div>
+    <ul class="action-list">
+      <li>HR Business Partner to conduct 1:1 behavioural review within 7 days</li>
+      <li>Place employee on 30-day compliance watch with weekly check-ins</li>
+      <li>Restrict vendor-facing access until next review</li>
+      <li>Notify line manager and document in HRIS</li>
+    </ul>
+  `);
+}
+
+function kpiDrill(type) {
+  const modals = {
+    exposure: () => `
+      <h3>₹32 Cr — Total Contract Exposure</h3>
+      <p class="sub">12 HIGH-risk vendors · as of 2026-05-06</p>
+      <div class="modal-grid">
+        ${EXP_LABELS.slice(0,6).map((l,i) => `<div class="modal-kpi"><div class="val" style="color:#f97316">₹${EXP_VALS[i].toFixed(0)}L</div><div class="lbl">${l}</div></div>`).join('')}
+      </div>
+      <div style="font-size:0.8rem;color:var(--muted);margin-top:8px;">Top 3 vendors (IV0004, IV0006, IV0010) account for ₹13.8 Cr — 43% of total exposure.</div>`,
+
+    highRisk: () => `
+      <h3>12 High-Risk Vendors</h3>
+      <p class="sub">Threshold: score ≥ ${currentThreshold.toFixed(1)} AND delay > 15d</p>
+      ${VENDORS.filter(v => v.risk === 'HIGH').map(v => `
+        <div onclick="closeModalDirect();openVendorModal('${v.id}')"
+          style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:8px;background:var(--bg);margin-bottom:6px;cursor:pointer;">
+          <span style="font-weight:600;">${v.id}</span>
+          <span>${v.cat}</span>
+          <span style="color:#ef4444;font-weight:700;">${v.score.toFixed(1)}</span>
+          <span style="color:#f59e0b;">${v.delay}d delay</span>
+          <span style="color:#f97316;">₹${v.exp.toFixed(0)}L</span>
+        </div>`).join('')}`,
+
+    incidents: () => `
+      <h3>226 Open Incidents — Severity Breakdown</h3>
+      <p class="sub">Across all departments · 2026-05-06</p>
+      <div class="modal-grid">
+        ${SEV_LABELS.map((l,i) => `<div class="modal-kpi"><div class="val" style="color:${SEV_COLORS[i]}">${SEV_VALS[i]}</div><div class="lbl">${l}</div></div>`).join('')}
+      </div>
+      <div style="font-size:0.8rem;color:var(--muted);margin-top:8px;">CRITICAL + HIGH = ${SEV_VALS[0]+SEV_VALS[1]} incidents (${((SEV_VALS[0]+SEV_VALS[1])/226*100).toFixed(0)}% of open). Immediate resolution required.</div>`,
+
+    unresolved: () => `
+      <h3>45.2% Unresolved Rate</h3>
+      <p class="sub">Dept breakdown — % of incidents still open</p>
+      <div class="modal-grid">
+        ${DEPT_LABELS.map((l,i) => `<div class="modal-kpi"><div class="val" style="color:${DEPT_OPEN[i]/DEPT_TOTAL[i]>0.5?'#ef4444':'#f59e0b'}">${(DEPT_OPEN[i]/DEPT_TOTAL[i]*100).toFixed(0)}%</div><div class="lbl">${l}</div></div>`).join('')}
+      </div>`,
+
+    staff: () => `
+      <h3>15 At-Risk Staff Members</h3>
+      <p class="sub">Employees with ≥4 compliance incidents · 2026-05-06</p>
+      ${EMP_LABELS.map((e,i) => `
+        <div onclick="closeModalDirect();showPanel('risk',document.querySelectorAll('.tab')[1])"
+          style="display:flex;justify-content:space-between;padding:7px 12px;border-radius:8px;background:var(--bg);margin-bottom:5px;cursor:pointer;font-size:0.82rem;">
+          <span style="font-weight:600;">${e}</span>
+          <span style="color:#ef4444;">${EMP_INC[i]} incidents</span>
+          <span style="color:#f97316;">score ${EMP_RISK[i].toFixed(1)}</span>
+          <span class="chip ${EMP_INC[i]>=5?'chip-red':'chip-orange'}">${EMP_INC[i]>=5?'CRITICAL':'HIGH'}</span>
+        </div>`).join('')}`,
+  };
+  if (modals[type]) openModal(modals[type]());
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// AGENT PIPELINE (animated)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const AGENTS = [
+  { n:1, icon:'📥', name:'DataAgent',      file:'agents/data_agent.py',      color:'#6366f1',
+    desc:'Ingest, validate, normalise',
+    inp:'ibsh_vendors_2k.csv\nibsh_incidents_90k.csv\nibsh_employees_5k.csv\nenterprise_summary.json',
+    out:'vendors:   2,000 rows ✓\nincidents: 90,001 rows ✓\nemployees: 5,000 rows ✓\nas_of: 2026-05-06 ✓',
+    outColor:'#22c55e', foot:'BOM stripping · Indian ₹ format · date normalisation · null coercion' },
+  { n:2, icon:'⚠️', name:'RiskAgent',      file:'agents/risk_agent.py',      color:'#ef4444',
+    desc:'Score vendors, employees, departments',
+    inp:'2,000 vendors\n90,001 incidents\n5,000 employees\nThresholds: score>7 & delay>15d',
+    out:'HIGH vendors:  12 🔴\nExposure:      ₹32 Cr 🔴\nOpen incidents: 226 🟡\nAt-risk staff:  15 🟡',
+    outColor:'#ef4444', foot:'Dual-breach logic: score > 7 AND delay > 15d → HIGH · CRITICAL at score ≥ 9.5' },
+  { n:3, icon:'📈', name:'TrendAgent',     file:'agents/trend_agent.py',     color:'#3b82f6',
+    desc:'30-day MoM window analysis',
+    inp:'Window: Apr 6 – May 6\nPrior:  Mar 6 – Apr 5\n90,001 incident rows',
+    out:'Volume MoM:  +52.2% ↑\nOpen rate:   +51.6% ↑\nSignal: DETERIORATING 🔴\nGhost flags: 3 detected',
+    outColor:'#f97316', foot:'OODA: Observe volume → Orient by dept → Decide signal → Act on anomalies' },
+  { n:4, icon:'📝', name:'BriefAgent',     file:'agents/brief_agent.py',     color:'#22c55e',
+    desc:'Generate CXO-ready Markdown briefs',
+    inp:'12 HIGH vendors\n226 open incidents\nSignal: DETERIORATING\n3 ghost anomaly flags',
+    out:'Weekly_Risk_Brief.md ✓\n30Day_Trend_Brief.md ✓\n7 sections, named owners\n48-hr action deadlines',
+    outColor:'#22c55e', foot:'9 reasoning frameworks: First Principles · Ghost Mode · OODA · Devil\'s Advocate · Inversion' },
+  { n:5, icon:'📊', name:'DashboardAgent', file:'agents/dashboard_agent.py', color:'#f97316',
+    desc:'Render interactive HTML dashboard',
+    inp:'DataBundle\nRiskReport\nTrendReport\nBriefAgent outputs',
+    out:'9 Chart.js charts ✓\n4 tabs rendered ✓\nZero server needed ✓\nYou are viewing this ✓',
+    outColor:'#f97316', foot:'Self-contained HTML · works offline · no build step' },
+];
+
+function buildAgentCards() {
+  document.getElementById('agent-cards').innerHTML = AGENTS.map(a => `
+    <div class="acard" id="acard-${a.n}" style="display:none;background:var(--surface);border:1px solid ${a.color};border-radius:12px;overflow:hidden;">
+      <div style="background:#1e1b4b;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:1.15rem;">${a.icon}</span>
+          <div>
+            <div style="font-weight:700;color:#fff;font-size:0.88rem;">${a.n} / 5 · ${a.name}</div>
+            <div style="font-size:0.72rem;color:var(--muted);">${a.file} · ${a.desc}</div>
+          </div>
+        </div>
+        <span class="status-badge" style="background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44;padding:3px 10px;border-radius:9999px;font-size:0.7rem;font-weight:600;">⟳ RUNNING</span>
+      </div>
+      <div style="padding:12px 16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <div style="font-size:0.7rem;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em;">Input</div>
+          <div style="font-family:monospace;font-size:0.77rem;background:#0f1117;border-radius:6px;padding:9px 11px;color:#94a3b8;white-space:pre;">${a.inp}</div>
+        </div>
+        <div>
+          <div style="font-size:0.7rem;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em;">Output</div>
+          <div class="output-reveal" style="font-family:monospace;font-size:0.77rem;background:#0f1117;border-radius:6px;padding:9px 11px;color:${a.outColor};opacity:0;transition:opacity 0.5s;white-space:pre;">${a.out}</div>
+        </div>
+      </div>
+      <div style="padding:0 16px 10px;font-size:0.76rem;color:var(--muted);">${a.foot}</div>
+    </div>`).join('');
+}
+
+function runPipeline() {
+  const btn = document.getElementById('run-btn');
+  btn.disabled = true; btn.textContent = '⟳ Running…'; btn.style.opacity = '0.6';
+
+  const term = document.getElementById('terminal');
+  term.style.display = 'block'; term.innerHTML = '';
+  const pw = document.getElementById('progress-wrap');
+  pw.style.display = 'block';
+  const comp = document.getElementById('pipeline-complete');
+  comp.style.display = 'none';
+
+  for (let i = 1; i <= 5; i++) {
+    const c = document.getElementById('acard-' + i);
+    c.style.display = 'none';
+    c.querySelector('.output-reveal').style.opacity = '0';
+    const b = c.querySelector('.status-badge');
+    b.innerHTML = '⟳ RUNNING';
+    b.style.cssText = 'background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44;padding:3px 10px;border-radius:9999px;font-size:0.7rem;font-weight:600;';
+  }
+
+  const lines = [
+    {t:150,  c:'#6366f1', s:'IndiBrew GCC Vendor Risk Monitor v1.0'},
+    {t:320,  c:'#94a3b8', s:'Loading config from Settings.from_env()…'},
+    {t:600,  c:'#94a3b8', s:'Data dir: data/sample/  |  Output: /tmp/reports/'},
+    {t:900,  c:'#f59e0b', s:''},
+    {t:1000, c:'#f59e0b', s:'▶ [1/5] DataAgent — ingesting 97,001 records…'},
+    {t:2100, c:'#22c55e', s:'   ✓ 2,000 vendors  |  90,001 incidents  |  5,000 employees  (0.02s)'},
+    {t:2500, c:'#f59e0b', s:'▶ [2/5] RiskAgent — scoring vendors and employees…'},
+    {t:3500, c:'#ef4444', s:'   ✓ 12 HIGH-risk vendors  |  ₹32 Cr exposure  |  226 open incidents  (0.01s)'},
+    {t:3900, c:'#f59e0b', s:'▶ [3/5] TrendAgent — 30-day MoM window analysis…'},
+    {t:4900, c:'#f97316', s:'   ✓ Volume MoM +52.2%  |  Signal: DETERIORATING  |  3 ghost flags  (0.01s)'},
+    {t:5300, c:'#f59e0b', s:'▶ [4/5] BriefAgent — generating CXO briefs…'},
+    {t:6200, c:'#22c55e', s:'   ✓ Weekly_Risk_Brief.md  |  30Day_Trend_Brief.md  (0.00s)'},
+    {t:6600, c:'#f59e0b', s:'▶ [5/5] DashboardAgent — rendering 9 charts…'},
+    {t:7500, c:'#22c55e', s:'   ✓ IndiBrew_GCC_Dashboard.html  (0.00s)'},
+    {t:7900, c:'#22c55e', s:''},
+    {t:8000, c:'#22c55e', s:'✅ Pipeline complete in 0.04s'},
+    {t:8100, c:'#94a3b8', s:'   ₹32 Cr scanned  |  12 vendors flagged  |  226 incidents tracked'},
+  ];
+
+  const startTimes = [1000,2500,3900,5300,6600];
+  const doneTimes  = [2100,3500,4900,6200,7500];
+  const pctSteps   = [0,20,40,60,80,100];
+  const pctLabels  = ['Initialising…','DataAgent…','RiskAgent…','TrendAgent…','BriefAgent…','DashboardAgent…'];
+
+  const t0 = Date.now();
+  const clock = setInterval(() => {
+    document.getElementById('progress-time').textContent = ((Date.now()-t0)/1000).toFixed(2)+'s';
+  }, 50);
+
+  lines.forEach(({t,c,s}) => setTimeout(() => {
+    const d = document.createElement('div');
+    d.style.color = c; d.textContent = s;
+    term.appendChild(d); term.scrollTop = term.scrollHeight;
+  }, t));
+
+  for (let i = 1; i <= 5; i++) {
+    const idx = i - 1;
+    setTimeout(() => {
+      const card = document.getElementById('acard-'+i);
+      card.style.display = 'block';
+      card.scrollIntoView({behavior:'smooth',block:'nearest'});
+      document.getElementById('progress-bar').style.width = pctSteps[i]+'%';
+      document.getElementById('progress-label').textContent = pctLabels[i];
+    }, startTimes[idx]);
+    setTimeout(() => {
+      const card = document.getElementById('acard-'+i);
+      const badge = card.querySelector('.status-badge');
+      badge.innerHTML = '✓ PASSED';
+      badge.style.cssText = 'background:#22c55e22;color:#22c55e;border:1px solid #22c55e44;padding:3px 10px;border-radius:9999px;font-size:0.7rem;font-weight:600;';
+      card.querySelector('.output-reveal').style.opacity = '1';
+    }, doneTimes[idx]);
+  }
+
+  setTimeout(() => {
+    clearInterval(clock);
+    document.getElementById('progress-time').textContent = '0.04s';
+    document.getElementById('progress-bar').style.width = '100%';
+    document.getElementById('progress-label').textContent = 'Pipeline complete ✅';
+    comp.style.display = 'flex';
+    btn.disabled = false; btn.textContent = '↺ Run Again'; btn.style.opacity = '1';
+  }, 8400);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// BOOT
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+buildAgentCards();
+initCharts();
+renderVendorTable();
+
+// Keyboard: Escape closes modal
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalDirect(); });
 </script>
 </body>
 </html>
