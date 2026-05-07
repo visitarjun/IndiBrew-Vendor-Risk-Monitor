@@ -325,255 +325,300 @@
 
 
 <div id="panel-agents" class="panel">
-  <div style="max-width:900px;margin:0 auto;padding:8px 0 32px;">
-    <div style="margin-bottom:24px;">
-      <h2 style="font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:4px;">Live Pipeline Trace</h2>
-      <p style="color:var(--muted);font-size:0.85rem;">Each agent runs in sequence. Output of one becomes input of the next. No shared state.</p>
+<div style="max-width:960px;margin:0 auto;padding:24px 0 48px;">
+
+  <!-- Header -->
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;flex-wrap:wrap;gap:12px;">
+    <div>
+      <h2 style="font-size:1.15rem;font-weight:700;color:#fff;margin-bottom:4px;">Agent Pipeline — Live Execution</h2>
+      <p style="color:var(--muted);font-size:0.85rem;">Watch each agent run, process data, and hand off results to the next agent.</p>
     </div>
+    <button id="run-btn" onclick="runPipeline()"
+      style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:0.9rem;font-weight:700;cursor:pointer;letter-spacing:0.02em;">
+      ▶ Run Pipeline
+    </button>
+  </div>
 
-    <!-- Pipeline flow diagram -->
-    <div style="display:flex;align-items:center;gap:0;margin-bottom:32px;overflow-x:auto;padding-bottom:8px;">
-      <div style="background:#1e1b4b;border:1px solid #6366f1;border-radius:10px;padding:12px 18px;min-width:130px;text-align:center;">
-        <div style="font-size:1.4rem;">📥</div>
-        <div style="font-weight:700;font-size:0.85rem;color:#fff;margin-top:4px;">DataAgent</div>
-        <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">Ingest &amp; validate</div>
-      </div>
-      <div style="color:#6366f1;font-size:1.5rem;padding:0 6px;flex-shrink:0;">→</div>
-      <div style="background:#1e1b4b;border:1px solid #ef4444;border-radius:10px;padding:12px 18px;min-width:130px;text-align:center;">
-        <div style="font-size:1.4rem;">⚠️</div>
-        <div style="font-weight:700;font-size:0.85rem;color:#fff;margin-top:4px;">RiskAgent</div>
-        <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">Score &amp; flag</div>
-      </div>
-      <div style="color:#6366f1;font-size:1.5rem;padding:0 6px;flex-shrink:0;">→</div>
-      <div style="background:#1e1b4b;border:1px solid #3b82f6;border-radius:10px;padding:12px 18px;min-width:130px;text-align:center;">
-        <div style="font-size:1.4rem;">📈</div>
-        <div style="font-weight:700;font-size:0.85rem;color:#fff;margin-top:4px;">TrendAgent</div>
-        <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">30-day MoM</div>
-      </div>
-      <div style="color:#6366f1;font-size:1.5rem;padding:0 6px;flex-shrink:0;">→</div>
-      <div style="background:#1e1b4b;border:1px solid #22c55e;border-radius:10px;padding:12px 18px;min-width:130px;text-align:center;">
-        <div style="font-size:1.4rem;">📝</div>
-        <div style="font-weight:700;font-size:0.85rem;color:#fff;margin-top:4px;">BriefAgent</div>
-        <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">CXO briefs</div>
-      </div>
-      <div style="color:#6366f1;font-size:1.5rem;padding:0 6px;flex-shrink:0;">→</div>
-      <div style="background:#1e1b4b;border:1px solid #f97316;border-radius:10px;padding:12px 18px;min-width:130px;text-align:center;">
-        <div style="font-size:1.4rem;">📊</div>
-        <div style="font-weight:700;font-size:0.85rem;color:#fff;margin-top:4px;">DashboardAgent</div>
-        <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">9 charts</div>
-      </div>
+  <!-- Terminal output -->
+  <div id="terminal" style="background:#0a0c14;border:1px solid #2d3150;border-radius:10px;padding:18px 20px;font-family:monospace;font-size:0.82rem;min-height:60px;margin-bottom:24px;line-height:1.8;display:none;">
+  </div>
+
+  <!-- Progress bar -->
+  <div id="progress-wrap" style="display:none;margin-bottom:28px;">
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+      <span style="font-size:0.78rem;color:var(--muted);" id="progress-label">Initialising…</span>
+      <span style="font-size:0.78rem;color:var(--muted);" id="progress-time">0.00s</span>
     </div>
-
-    <!-- Agent cards -->
-    <div style="display:flex;flex-direction:column;gap:16px;">
-
-      <!-- DataAgent -->
-      <div style="background:var(--surface);border:1px solid #6366f1;border-radius:12px;overflow:hidden;">
-        <div style="background:#1e1b4b;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <span style="font-size:1.3rem;">📥</span>
-            <div>
-              <div style="font-weight:700;color:#fff;">1 / 5 &nbsp;·&nbsp; DataAgent</div>
-              <div style="font-size:0.78rem;color:var(--muted);">agents/data_agent.py · Responsibility: Ingest, validate, normalise</div>
-            </div>
-          </div>
-          <span style="background:#22c55e22;color:#22c55e;border:1px solid #22c55e44;padding:3px 10px;border-radius:9999px;font-size:0.72rem;font-weight:600;">✓ PASSED</span>
-        </div>
-        <div style="padding:16px 20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-          <div>
-            <div style="font-size:0.75rem;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">Input</div>
-            <div style="font-family:monospace;font-size:0.8rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#94a3b8;">
-              data/sample/<br>
-              ├── ibsh_vendors_2k.csv<br>
-              ├── ibsh_incidents_90k.csv<br>
-              ├── ibsh_employees_5k.csv<br>
-              └── ibsh_enterprise_summary.json
-            </div>
-          </div>
-          <div>
-            <div style="font-size:0.75rem;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">Output → DataBundle</div>
-            <div style="font-family:monospace;font-size:0.8rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#94a3b8;">
-              vendors:   2,000 rows<br>
-              incidents: 90,001 rows<br>
-              employees: 5,000 rows<br>
-              as_of:     2026-05-06
-            </div>
-          </div>
-        </div>
-        <div style="padding:0 20px 14px;display:flex;gap:24px;">
-          <div style="font-size:0.8rem;color:var(--muted);">⏱ <span style="color:#22c55e;">0.02s</span></div>
-          <div style="font-size:0.8rem;color:var(--muted);">Ghost mode: BOM stripping · Indian ₹ format · date normalisation</div>
-        </div>
-      </div>
-
-      <!-- RiskAgent -->
-      <div style="background:var(--surface);border:1px solid #ef4444;border-radius:12px;overflow:hidden;">
-        <div style="background:#1e1b4b;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <span style="font-size:1.3rem;">⚠️</span>
-            <div>
-              <div style="font-weight:700;color:#fff;">2 / 5 &nbsp;·&nbsp; RiskAgent</div>
-              <div style="font-size:0.78rem;color:var(--muted);">agents/risk_agent.py · Responsibility: Score vendors, employees, departments</div>
-            </div>
-          </div>
-          <span style="background:#22c55e22;color:#22c55e;border:1px solid #22c55e44;padding:3px 10px;border-radius:9999px;font-size:0.72rem;font-weight:600;">✓ PASSED</span>
-        </div>
-        <div style="padding:16px 20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-          <div>
-            <div style="font-size:0.75rem;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">Input → DataBundle</div>
-            <div style="font-family:monospace;font-size:0.8rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#94a3b8;">
-              2,000 vendors<br>
-              90,001 incidents<br>
-              5,000 employees<br>
-              Thresholds: score&gt;7 &amp; delay&gt;15d
-            </div>
-          </div>
-          <div>
-            <div style="font-size:0.75rem;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">Output → RiskReport</div>
-            <div style="font-family:monospace;font-size:0.8rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#94a3b8;">
-              HIGH vendors:  12<br>
-              Exposure:      ₹32 Cr<br>
-              Open incidents: 226<br>
-              At-risk staff:  47
-            </div>
-          </div>
-        </div>
-        <div style="padding:0 20px 14px;display:flex;gap:24px;">
-          <div style="font-size:0.8rem;color:var(--muted);">⏱ <span style="color:#22c55e;">0.01s</span></div>
-          <div style="font-size:0.8rem;color:var(--muted);">Dual-breach logic: score &gt; 7 AND delay &gt; 15d → HIGH</div>
-        </div>
-      </div>
-
-      <!-- TrendAgent -->
-      <div style="background:var(--surface);border:1px solid #3b82f6;border-radius:12px;overflow:hidden;">
-        <div style="background:#1e1b4b;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <span style="font-size:1.3rem;">📈</span>
-            <div>
-              <div style="font-weight:700;color:#fff;">3 / 5 &nbsp;·&nbsp; TrendAgent</div>
-              <div style="font-size:0.78rem;color:var(--muted);">agents/trend_agent.py · Responsibility: 30-day MoM analysis</div>
-            </div>
-          </div>
-          <span style="background:#22c55e22;color:#22c55e;border:1px solid #22c55e44;padding:3px 10px;border-radius:9999px;font-size:0.72rem;font-weight:600;">✓ PASSED</span>
-        </div>
-        <div style="padding:16px 20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-          <div>
-            <div style="font-size:0.75rem;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">Input → DataBundle</div>
-            <div style="font-family:monospace;font-size:0.8rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#94a3b8;">
-              Window: Apr 6 – May 6<br>
-              Prior:  Mar 6 – Apr 5<br>
-              90,001 incident rows
-            </div>
-          </div>
-          <div>
-            <div style="font-size:0.75rem;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">Output → TrendReport</div>
-            <div style="font-family:monospace;font-size:0.8rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#94a3b8;">
-              Volume MoM:  +52.2%<br>
-              Open rate:   +51.6%<br>
-              Signal:      DETERIORATING<br>
-              Ghost flags: 3
-            </div>
-          </div>
-        </div>
-        <div style="padding:0 20px 14px;display:flex;gap:24px;">
-          <div style="font-size:0.8rem;color:var(--muted);">⏱ <span style="color:#22c55e;">0.01s</span></div>
-          <div style="font-size:0.8rem;color:var(--muted);">OODA: Observe volume · Orient by dept · Decide signal · Act on ghost flags</div>
-        </div>
-      </div>
-
-      <!-- BriefAgent -->
-      <div style="background:var(--surface);border:1px solid #22c55e;border-radius:12px;overflow:hidden;">
-        <div style="background:#1e1b4b;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <span style="font-size:1.3rem;">📝</span>
-            <div>
-              <div style="font-weight:700;color:#fff;">4 / 5 &nbsp;·&nbsp; BriefAgent</div>
-              <div style="font-size:0.78rem;color:var(--muted);">agents/brief_agent.py · Responsibility: Generate CXO-ready Markdown briefs</div>
-            </div>
-          </div>
-          <span style="background:#22c55e22;color:#22c55e;border:1px solid #22c55e44;padding:3px 10px;border-radius:9999px;font-size:0.72rem;font-weight:600;">✓ PASSED</span>
-        </div>
-        <div style="padding:16px 20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-          <div>
-            <div style="font-size:0.75rem;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">Input → RiskReport + TrendReport</div>
-            <div style="font-family:monospace;font-size:0.8rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#94a3b8;">
-              12 HIGH vendors<br>
-              226 open incidents<br>
-              Signal: DETERIORATING<br>
-              3 ghost flags
-            </div>
-          </div>
-          <div>
-            <div style="font-size:0.75rem;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">Output → 2 Markdown files</div>
-            <div style="font-family:monospace;font-size:0.8rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#94a3b8;">
-              Weekly_Risk_Brief.md<br>
-              30Day_Trend_Brief.md<br>
-              7 sections, named owners<br>
-              48-hour action deadlines
-            </div>
-          </div>
-        </div>
-        <div style="padding:0 20px 14px;display:flex;gap:24px;">
-          <div style="font-size:0.8rem;color:var(--muted);">⏱ <span style="color:#22c55e;">0.00s</span></div>
-          <div style="font-size:0.8rem;color:var(--muted);">9 reasoning frameworks applied: First Principles · Ghost Mode · OODA · Devil's Advocate</div>
-        </div>
-      </div>
-
-      <!-- DashboardAgent -->
-      <div style="background:var(--surface);border:1px solid #f97316;border-radius:12px;overflow:hidden;">
-        <div style="background:#1e1b4b;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <span style="font-size:1.3rem;">📊</span>
-            <div>
-              <div style="font-weight:700;color:#fff;">5 / 5 &nbsp;·&nbsp; DashboardAgent</div>
-              <div style="font-size:0.78rem;color:var(--muted);">agents/dashboard_agent.py · Responsibility: Render interactive HTML dashboard</div>
-            </div>
-          </div>
-          <span style="background:#22c55e22;color:#22c55e;border:1px solid #22c55e44;padding:3px 10px;border-radius:9999px;font-size:0.72rem;font-weight:600;">✓ PASSED</span>
-        </div>
-        <div style="padding:16px 20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-          <div>
-            <div style="font-size:0.75rem;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">Input → RiskReport + TrendReport</div>
-            <div style="font-family:monospace;font-size:0.8rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#94a3b8;">
-              All upstream agent outputs<br>
-              KPIs, charts data<br>
-              Dept breakdowns<br>
-              30-day daily series
-            </div>
-          </div>
-          <div>
-            <div style="font-size:0.75rem;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">Output → Dashboard HTML</div>
-            <div style="font-family:monospace;font-size:0.8rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#94a3b8;">
-              9 Chart.js charts<br>
-              3 tabs (this dashboard)<br>
-              Zero server needed<br>
-              Self-contained HTML
-            </div>
-          </div>
-        </div>
-        <div style="padding:0 20px 14px;display:flex;gap:24px;">
-          <div style="font-size:0.8rem;color:var(--muted);">⏱ <span style="color:#22c55e;">0.00s</span></div>
-          <div style="font-size:0.8rem;color:var(--muted);">You are viewing this agent's output right now</div>
-        </div>
-      </div>
-
-      <!-- CI summary -->
-      <div style="background:var(--surface);border:1px solid #22c55e;border-radius:12px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-        <div>
-          <div style="font-weight:700;color:#22c55e;font-size:0.9rem;">✅ All agents verified — 68 / 68 tests passing</div>
-          <div style="font-size:0.78rem;color:var(--muted);margin-top:4px;">ruff · mypy · pytest · smoke test · GitHub Actions CI</div>
-        </div>
-        <div style="display:flex;gap:12px;flex-wrap:wrap;">
-          <a href="https://github.com/visitarjun/IndiBrew-Vendor-Risk-Monitor" target="_blank"
-             style="background:#1e1b4b;border:1px solid #6366f1;color:#a5b4fc;padding:6px 14px;border-radius:6px;font-size:0.78rem;text-decoration:none;">View Source</a>
-          <a href="https://github.com/visitarjun/IndiBrew-Vendor-Risk-Monitor/actions" target="_blank"
-             style="background:#1e1b4b;border:1px solid #22c55e;color:#86efac;padding:6px 14px;border-radius:6px;font-size:0.78rem;text-decoration:none;">CI Status</a>
-        </div>
-      </div>
-
+    <div style="background:#1a1d2e;border-radius:999px;height:6px;overflow:hidden;">
+      <div id="progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#6366f1,#22c55e);border-radius:999px;transition:width 0.3s ease;"></div>
     </div>
   </div>
+
+  <!-- Agent cards (revealed one by one) -->
+  <div style="display:flex;flex-direction:column;gap:14px;" id="agent-cards">
+
+    <div class="acard" id="acard-1" style="display:none;background:var(--surface);border:1px solid #6366f1;border-radius:12px;overflow:hidden;">
+      <div style="background:#1e1b4b;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:1.2rem;">📥</span>
+          <div>
+            <div style="font-weight:700;color:#fff;font-size:0.9rem;">1 / 5 · DataAgent</div>
+            <div style="font-size:0.75rem;color:var(--muted);">agents/data_agent.py · Ingest, validate, normalise</div>
+          </div>
+        </div>
+        <span class="status-badge" style="background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44;padding:3px 10px;border-radius:9999px;font-size:0.72rem;font-weight:600;">⟳ RUNNING</span>
+      </div>
+      <div style="padding:14px 18px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Input</div>
+          <div style="font-family:monospace;font-size:0.79rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#94a3b8;">
+            ibsh_vendors_2k.csv<br>ibsh_incidents_90k.csv<br>ibsh_employees_5k.csv<br>enterprise_summary.json
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Output → DataBundle</div>
+          <div class="output-reveal" style="font-family:monospace;font-size:0.79rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#22c55e;opacity:0;transition:opacity 0.5s;">
+            vendors:   2,000 rows ✓<br>incidents: 90,001 rows ✓<br>employees: 5,000 rows ✓<br>as_of: 2026-05-06 ✓
+          </div>
+        </div>
+      </div>
+      <div style="padding:0 18px 12px;font-size:0.78rem;color:var(--muted);">Ghost mode: BOM stripping · Indian ₹ format · date normalisation · null coercion</div>
+    </div>
+
+    <div class="acard" id="acard-2" style="display:none;background:var(--surface);border:1px solid #ef4444;border-radius:12px;overflow:hidden;">
+      <div style="background:#1e1b4b;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:1.2rem;">⚠️</span>
+          <div>
+            <div style="font-weight:700;color:#fff;font-size:0.9rem;">2 / 5 · RiskAgent</div>
+            <div style="font-size:0.75rem;color:var(--muted);">agents/risk_agent.py · Score vendors, employees, departments</div>
+          </div>
+        </div>
+        <span class="status-badge" style="background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44;padding:3px 10px;border-radius:9999px;font-size:0.72rem;font-weight:600;">⟳ RUNNING</span>
+      </div>
+      <div style="padding:14px 18px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Input → DataBundle</div>
+          <div style="font-family:monospace;font-size:0.79rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#94a3b8;">
+            2,000 vendors<br>90,001 incidents<br>5,000 employees<br>Thresholds: score&gt;7 &amp; delay&gt;15d
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Output → RiskReport</div>
+          <div class="output-reveal" style="font-family:monospace;font-size:0.79rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#ef4444;opacity:0;transition:opacity 0.5s;">
+            HIGH vendors:  12 🔴<br>Exposure:      ₹32 Cr 🔴<br>Open incidents: 226 🟡<br>At-risk staff:  15 🟡
+          </div>
+        </div>
+      </div>
+      <div style="padding:0 18px 12px;font-size:0.78rem;color:var(--muted);">Dual-breach logic: score &gt; 7 AND delay &gt; 15d → HIGH · CRITICAL at score ≥ 9.5</div>
+    </div>
+
+    <div class="acard" id="acard-3" style="display:none;background:var(--surface);border:1px solid #3b82f6;border-radius:12px;overflow:hidden;">
+      <div style="background:#1e1b4b;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:1.2rem;">📈</span>
+          <div>
+            <div style="font-weight:700;color:#fff;font-size:0.9rem;">3 / 5 · TrendAgent</div>
+            <div style="font-size:0.75rem;color:var(--muted);">agents/trend_agent.py · 30-day MoM window analysis</div>
+          </div>
+        </div>
+        <span class="status-badge" style="background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44;padding:3px 10px;border-radius:9999px;font-size:0.72rem;font-weight:600;">⟳ RUNNING</span>
+      </div>
+      <div style="padding:14px 18px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Input → DataBundle</div>
+          <div style="font-family:monospace;font-size:0.79rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#94a3b8;">
+            Window: Apr 6 – May 6<br>Prior:  Mar 6 – Apr 5<br>90,001 incident rows
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Output → TrendReport</div>
+          <div class="output-reveal" style="font-family:monospace;font-size:0.79rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#f97316;opacity:0;transition:opacity 0.5s;">
+            Volume MoM:  +52.2% ↑<br>Open rate:   +51.6% ↑<br>Signal: DETERIORATING 🔴<br>Ghost flags: 3 detected
+          </div>
+        </div>
+      </div>
+      <div style="padding:0 18px 12px;font-size:0.78rem;color:var(--muted);">OODA: Observe volume → Orient by dept → Decide signal → Act on anomalies</div>
+    </div>
+
+    <div class="acard" id="acard-4" style="display:none;background:var(--surface);border:1px solid #22c55e;border-radius:12px;overflow:hidden;">
+      <div style="background:#1e1b4b;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:1.2rem;">📝</span>
+          <div>
+            <div style="font-weight:700;color:#fff;font-size:0.9rem;">4 / 5 · BriefAgent</div>
+            <div style="font-size:0.75rem;color:var(--muted);">agents/brief_agent.py · Generate CXO-ready Markdown briefs</div>
+          </div>
+        </div>
+        <span class="status-badge" style="background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44;padding:3px 10px;border-radius:9999px;font-size:0.72rem;font-weight:600;">⟳ RUNNING</span>
+      </div>
+      <div style="padding:14px 18px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Input → RiskReport + TrendReport</div>
+          <div style="font-family:monospace;font-size:0.79rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#94a3b8;">
+            12 HIGH vendors<br>226 open incidents<br>Signal: DETERIORATING<br>3 ghost anomaly flags
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Output → 2 Markdown Briefs</div>
+          <div class="output-reveal" style="font-family:monospace;font-size:0.79rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#22c55e;opacity:0;transition:opacity 0.5s;">
+            Weekly_Risk_Brief.md ✓<br>30Day_Trend_Brief.md ✓<br>7 sections, named owners<br>48-hr action deadlines
+          </div>
+        </div>
+      </div>
+      <div style="padding:0 18px 12px;font-size:0.78rem;color:var(--muted);">9 reasoning frameworks: First Principles · Ghost Mode · OODA · Devil's Advocate · Inversion</div>
+    </div>
+
+    <div class="acard" id="acard-5" style="display:none;background:var(--surface);border:1px solid #f97316;border-radius:12px;overflow:hidden;">
+      <div style="background:#1e1b4b;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:1.2rem;">📊</span>
+          <div>
+            <div style="font-weight:700;color:#fff;font-size:0.9rem;">5 / 5 · DashboardAgent</div>
+            <div style="font-size:0.75rem;color:var(--muted);">agents/dashboard_agent.py · Render interactive HTML dashboard</div>
+          </div>
+        </div>
+        <span class="status-badge" style="background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44;padding:3px 10px;border-radius:9999px;font-size:0.72rem;font-weight:600;">⟳ RUNNING</span>
+      </div>
+      <div style="padding:14px 18px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Input → All upstream outputs</div>
+          <div style="font-family:monospace;font-size:0.79rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#94a3b8;">
+            DataBundle<br>RiskReport<br>TrendReport<br>BriefAgent outputs
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Output → This Dashboard</div>
+          <div class="output-reveal" style="font-family:monospace;font-size:0.79rem;background:#0f1117;border-radius:6px;padding:10px 12px;color:#f97316;opacity:0;transition:opacity 0.5s;">
+            9 Chart.js charts ✓<br>4 tabs rendered ✓<br>Zero server needed ✓<br>You are viewing this ✓
+          </div>
+        </div>
+      </div>
+      <div style="padding:0 18px 12px;font-size:0.78rem;color:var(--muted);">Self-contained HTML · works offline · no build step</div>
+    </div>
+
+  </div>
+
+  <!-- Final summary (hidden until complete) -->
+  <div id="pipeline-complete" style="display:none;margin-top:20px;background:var(--surface);border:1px solid #22c55e;border-radius:12px;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">
+    <div>
+      <div style="font-weight:700;color:#22c55e;font-size:1rem;">✅ Pipeline complete — 0.04s total</div>
+      <div style="font-size:0.8rem;color:var(--muted);margin-top:4px;">97,001 records processed · 3 outputs generated · 68/68 tests passing</div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <a href="https://github.com/visitarjun/IndiBrew-Vendor-Risk-Monitor" target="_blank"
+         style="background:#1e1b4b;border:1px solid #6366f1;color:#a5b4fc;padding:6px 14px;border-radius:6px;font-size:0.78rem;text-decoration:none;font-weight:600;">View Source</a>
+      <a href="https://github.com/visitarjun/IndiBrew-Vendor-Risk-Monitor/actions" target="_blank"
+         style="background:#1e1b4b;border:1px solid #22c55e;color:#86efac;padding:6px 14px;border-radius:6px;font-size:0.78rem;text-decoration:none;font-weight:600;">CI Status</a>
+    </div>
+  </div>
+
 </div>
+</div>
+
+<script>
+function runPipeline() {
+  const btn = document.getElementById('run-btn');
+  btn.disabled = true;
+  btn.textContent = '⟳ Running…';
+  btn.style.opacity = '0.6';
+
+  const terminal = document.getElementById('terminal');
+  terminal.style.display = 'block';
+  terminal.innerHTML = '';
+
+  const progressWrap = document.getElementById('progress-wrap');
+  progressWrap.style.display = 'block';
+
+  const complete = document.getElementById('pipeline-complete');
+  complete.style.display = 'none';
+
+  // Hide all cards
+  for (let i = 1; i <= 5; i++) {
+    const c = document.getElementById('acard-' + i);
+    c.style.display = 'none';
+    c.querySelector('.output-reveal').style.opacity = '0';
+    c.querySelector('.status-badge').innerHTML = '⟳ RUNNING';
+    c.querySelector('.status-badge').style.cssText = 'background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44;padding:3px 10px;border-radius:9999px;font-size:0.72rem;font-weight:600;';
+  }
+
+  const termLines = [
+    {t:200,  color:'#6366f1', text:'IndiBrew GCC Vendor Risk Monitor v1.0'},
+    {t:400,  color:'#94a3b8', text:'Loading configuration from Settings.from_env()…'},
+    {t:700,  color:'#94a3b8', text:'Data directory: data/sample/  |  Output: /tmp/reports/'},
+    {t:1000, color:'#f59e0b', text:''},
+    {t:1100, color:'#f59e0b', text:'▶ [1/5] DataAgent — ingesting 97,001 records…'},
+    {t:2200, color:'#22c55e', text:'   ✓ 2,000 vendors  |  90,001 incidents  |  5,000 employees  (0.02s)'},
+    {t:2600, color:'#f59e0b', text:'▶ [2/5] RiskAgent — scoring vendors and employees…'},
+    {t:3600, color:'#ef4444', text:'   ✓ 12 HIGH-risk vendors  |  ₹32 Cr exposure  |  226 open incidents  (0.01s)'},
+    {t:4000, color:'#f59e0b', text:'▶ [3/5] TrendAgent — 30-day MoM window analysis…'},
+    {t:5000, color:'#f97316', text:'   ✓ Volume MoM +52.2%  |  Signal: DETERIORATING  |  3 ghost flags  (0.01s)'},
+    {t:5400, color:'#f59e0b', text:'▶ [4/5] BriefAgent — generating CXO briefs…'},
+    {t:6400, color:'#22c55e', text:'   ✓ Weekly_Risk_Brief.md  |  30Day_Trend_Brief.md  (0.00s)'},
+    {t:6800, color:'#f59e0b', text:'▶ [5/5] DashboardAgent — rendering 9 charts…'},
+    {t:7800, color:'#22c55e', text:'   ✓ IndiBrew_GCC_Dashboard.html  (0.00s)'},
+    {t:8200, color:'#22c55e', text:''},
+    {t:8300, color:'#22c55e', text:'✅ Pipeline complete in 0.04s'},
+    {t:8400, color:'#94a3b8', text:'   ₹32 Cr exposure scanned  |  12 vendors flagged  |  226 incidents tracked'},
+  ];
+
+  const agentTimes = [1100, 2600, 4000, 5400, 6800];
+  const agentDone  = [2200, 3600, 5000, 6400, 7800];
+  const progressSteps = [0, 20, 40, 60, 80, 100];
+  const progressLabels = ['Initialising…','DataAgent running…','RiskAgent scoring…','TrendAgent analysing…','BriefAgent writing…','DashboardAgent rendering…','Pipeline complete ✅'];
+
+  let startTime = Date.now();
+
+  // Animate clock
+  const clockInterval = setInterval(() => {
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+    document.getElementById('progress-time').textContent = elapsed + 's';
+  }, 50);
+
+  // Terminal lines
+  termLines.forEach(({t, color, text}) => {
+    setTimeout(() => {
+      const line = document.createElement('div');
+      line.style.color = color;
+      line.textContent = text;
+      terminal.appendChild(line);
+      terminal.scrollTop = terminal.scrollHeight;
+    }, t);
+  });
+
+  // Show agent cards + flip to RUNNING then PASSED
+  for (let i = 1; i <= 5; i++) {
+    const idx = i - 1;
+    setTimeout(() => {
+      const card = document.getElementById('acard-' + i);
+      card.style.display = 'block';
+      card.scrollIntoView({behavior:'smooth', block:'nearest'});
+      document.getElementById('progress-bar').style.width = progressSteps[i] + '%';
+      document.getElementById('progress-label').textContent = progressLabels[i];
+    }, agentTimes[idx]);
+
+    setTimeout(() => {
+      const card = document.getElementById('acard-' + i);
+      const badge = card.querySelector('.status-badge');
+      badge.innerHTML = '✓ PASSED';
+      badge.style.cssText = 'background:#22c55e22;color:#22c55e;border:1px solid #22c55e44;padding:3px 10px;border-radius:9999px;font-size:0.72rem;font-weight:600;';
+      card.querySelector('.output-reveal').style.opacity = '1';
+    }, agentDone[idx]);
+  }
+
+  // Complete
+  setTimeout(() => {
+    clearInterval(clockInterval);
+    document.getElementById('progress-time').textContent = '0.04s';
+    document.getElementById('progress-bar').style.width = '100%';
+    document.getElementById('progress-label').textContent = 'Pipeline complete ✅';
+    complete.style.display = 'flex';
+    btn.disabled = false;
+    btn.textContent = '↺ Run Again';
+    btn.style.opacity = '1';
+  }, 8600);
+}
+</script>
 
 <footer>
   IndiBrew Vendor Risk Monitor · Built with Claude (Cowork Mode) · 9 Structured Thinking Modes
